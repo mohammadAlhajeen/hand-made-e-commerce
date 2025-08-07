@@ -12,7 +12,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.hand</groupId>
-    <artifactId>handMade</artifactId>
+    <artifactId>demo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>handMadeEcommerce</name>
     <description>hand Made E-commerce project for Spring Boot</description>
@@ -173,7 +173,7 @@
         </dependency>
 
     </dependencies>
-
+    
     <build>
         <plugins>
             <plugin>
@@ -181,9 +181,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <argLine>
-                        -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/1.15.11/byte-buddy-agent-1.15.11.jar
-                    </argLine>
                     <release>22</release>
                 </configuration>
             </plugin>
