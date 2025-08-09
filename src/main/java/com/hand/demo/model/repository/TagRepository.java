@@ -20,48 +20,8 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
     @Transactional
     @Query(value = "INSERT IGNORE INTO tags(name) VALUES (:name)", nativeQuery = true)
     int insertSingleTag(@Param("name") String name);
-    
-    // Insert list of tags with a single query (MySQL compatible)
-    @Modifying
-    @Transactional
-    @Query(value = "INSERT IGNORE INTO tags(name) VALUES (:name1), (:name2), (:name3)", nativeQuery = true)
-    int insertMultipleTags(@Param("name1") String name1, @Param("name2") String name2, @Param("name3") String name3);
 
-    // Insert a list of tags directly (better performance)
-    @Modifying
-    @Transactional
-    @Query(value = "INSERT IGNORE INTO tags(name) VALUES(:names)", nativeQuery = true)
-    int insertBulkTags(@Param("names") List<String> names);
-    
-    // Helper method using JdbcTemplate for truly dynamic insertion of any number of tags
-    @Transactional
-    default int insertTagsList(List<String> tagNames, org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
-        if (tagNames == null || tagNames.isEmpty()) return 0;
-        
-        // Filter out empty strings and trim
-        List<String> validNames = tagNames.stream()
-            .filter(name -> name != null && !name.trim().isEmpty())
-            .map(String::trim)
-            .distinct()
-            .toList();
-        
-        if (validNames.isEmpty()) return 0;
-        
-        // Build dynamic SQL for multiple VALUES
-        StringBuilder sql = new StringBuilder("INSERT IGNORE INTO tags(name) VALUES ");
-        for (int i = 0; i < validNames.size(); i++) {
-            if (i > 0) sql.append(",");
-            sql.append("(?)");
-        }
-        
-        // Execute the dynamic query
-        return jdbcTemplate.update(
-            sql.toString(),
-            validNames.toArray()
-        );
-    }
-    
-    // Helper method for inserting multiple tags from JSON string
+    // Helper method for inserting multiple tags
     @Transactional
     default int insertIgnoreExisting(String jsonNames) {
         if (jsonNames == null || jsonNames.isEmpty()) return 0;

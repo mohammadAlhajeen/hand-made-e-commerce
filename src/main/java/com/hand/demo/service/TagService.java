@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hand.demo.model.entity.Tag;
 import com.hand.demo.model.repository.TagRepository;
@@ -66,7 +65,7 @@ public class TagService {
         // Now fetch all the tags we need
         return tagRepository.findByNameIn(tagNames);
     }
-    
+
     /**
      * Adds multiple tags if they don't already exist
      * 
@@ -101,33 +100,8 @@ public class TagService {
         return jdbcTemplate.update(sql.toString(), validNames.toArray());
     }
     
-    /**
-     * Adds multiple tags from JSON string array
-     * 
-     * @param jsonTagNames JSON string array of tag names (e.g., ["tag1","tag2"])
-     * @return Number of tags inserted
-     */
-    @Transactional
-    public int addTagsFromJson(String jsonTagNames) throws JsonProcessingException {
-        if (jsonTagNames == null || jsonTagNames.isEmpty()) {
-            return 0;
-        }
-        
-        // Convert JSON to tag list and add
-        List<String> tagList = objectMapper.readValue(jsonTagNames, 
-                objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
-        return addTagsIfNotExists(tagList);
-    }
-    
-    /**
-     * Legacy method for adding tags from JSON string
-     */
-    @Transactional
-    public void addTagsIfNotExists(List<String> newTags) throws JsonProcessingException {
-        String json = objectMapper.writeValueAsString(newTags);
-        tagRepository.insertIgnoreExisting(json);
-    }
-
+      
+  
     /**
      * Adds a single tag
      */
@@ -147,11 +121,5 @@ public class TagService {
         return tagRepository.insertSingleTag(tagName.trim());
     }
 
-    /**
-     * Deletes a tag by ID
-     */
-    @Transactional
-    public void deleteById(Long id) {
-        tagRepository.deleteById(id);
-    }
+
 }

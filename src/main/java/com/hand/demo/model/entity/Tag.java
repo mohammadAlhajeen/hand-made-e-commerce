@@ -18,10 +18,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(
-  name = "tags",
-  uniqueConstraints = @UniqueConstraint(columnNames = "name")
-)
+@Table(name = "tags", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
 
 public class Tag {
     @Id

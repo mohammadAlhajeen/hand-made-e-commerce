@@ -74,15 +74,11 @@ public class Product {
     private List<Cart> carts;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "product_tags",
-        joinColumns = @JoinColumn(name = "product_id"),
-        inverseJoinColumns = @JoinColumn(name = "tag_id")
-    )
+    @JoinTable(name = "product_tags", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private List<Tag> tags;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ImageUrl> images;
+    private List<ProductImage> images;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attribute> attributes;
@@ -102,17 +98,13 @@ public class Product {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // ================================
-    // Enums
-    // ================================
+    // Enums******
     public enum AvailabilityStatus {
         IN_STOCK,
         MADE_TO_ORDER
     }
 
-    // ================================
-    // Lifecycle Hooks
-    // ================================
+    // Pre data base
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -124,10 +116,8 @@ public class Product {
         updatedAt = LocalDateTime.now();
     }
 
-    // ================================
-    // Helper Methods
-    // ================================
-    public void setImages(List<ImageUrl> images) {
+    //Methods
+    public void setImages(List<ProductImage> images) {
         this.images = images;
         if (images != null) {
             images.forEach(img -> img.setProduct(this));

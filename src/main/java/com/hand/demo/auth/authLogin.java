@@ -4,18 +4,14 @@
  */
 package com.hand.demo.auth;
 
-import com.hand.demo.config.JwtService;
-import com.hand.demo.model.Dtos.LogInRequest;
-import com.hand.demo.model.repository.AppUserRepository;
-import java.io.IOException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
-
-import org.springframework.security.core.userdetails.User;
+import com.hand.demo.config.JwtService;
+import com.hand.demo.model.Dtos.LogInRequest;
 
 /**
  *
@@ -25,20 +21,16 @@ import org.springframework.security.core.userdetails.User;
 public class authLogin {
 
         @Autowired
-        private AppUserRepository appUserRepository;
-        @Autowired
         private JwtService jwtService;
         @Autowired
         private AuthenticationManager authenticationManager;
 
-        public AuthResponse LogInAppUser(LogInRequest logInRequest) throws IOException {
+        public AuthResponse LogInAppUser(LogInRequest logInRequest) {
                 Object userObject = authenticationManager.authenticate(
                                 new UsernamePasswordAuthenticationToken(
                                                 logInRequest.getUsername(), logInRequest.getPassword()))
                                 .getPrincipal();
-// appUserRepository.findByUsername(logInRequest.getUsername()).orElseThrow(()
-                // -> new UsernameNotFoundException("user Not found"));
-                
+
                 User user = userObject instanceof User ? (User) userObject : null;
                 String jwtToken = jwtService.jwtGenerator(user);
                 return AuthResponse.builder()

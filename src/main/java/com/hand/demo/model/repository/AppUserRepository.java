@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import com.hand.demo.model.entity.AppUser;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import com.hand.demo.model.entity.AppUser;
 
 /**
  *
@@ -22,14 +22,16 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     @Query("SELECT u FROM AppUser u WHERE u.deleted=false AND u.username = :username")
     Optional<AppUser> findByUsername(@Param("username") String username);
 
-
     public boolean existsByUsername(String username);
 
     @Query("""
             SELECT u.username AS username,
-                   u.password AS password,
-                
-                   r.name AS roleName
+                u.password AS password,
+                u.enabled AS enabled,
+                u.accountNonExpired AS accountNonExpired,
+                u.credentialsNonExpired AS credentialsNonExpired,
+                u.accountNonLocked AS accountNonLocked,
+                r.name AS roleName
             FROM AppUser u
             JOIN u.roles r
             WHERE u.deleted = false AND u.username = :username

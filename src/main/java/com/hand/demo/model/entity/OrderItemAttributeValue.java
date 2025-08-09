@@ -35,8 +35,4 @@ public class OrderItemAttributeValue {
     @Column(name = "price_increment", precision = 10, scale = 2)
     private BigDecimal priceIncrement = BigDecimal.ZERO;
 
-
-
-
-
 }

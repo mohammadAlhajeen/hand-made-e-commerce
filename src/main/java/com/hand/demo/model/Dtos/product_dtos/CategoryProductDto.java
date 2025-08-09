@@ -1,4 +1,4 @@
-package com.hand.demo.model.Dtos;
+package com.hand.demo.model.Dtos.product_dtos;
 
 import lombok.Data;
 import java.util.List;

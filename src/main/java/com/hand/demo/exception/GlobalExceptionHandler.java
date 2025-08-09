@@ -1,5 +1,6 @@
 package com.hand.demo.exception;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -8,13 +9,14 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // ✅ 1. أخطاء التحقق من البيانات (Validation)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
             MethodArgumentNotValidException ex,
@@ -29,7 +31,6 @@ public class GlobalExceptionHandler {
         return ApiErrorBuilder.badRequest(errors, request.getRequestURI());
     }
 
-    // ✅ 2. كيان غير موجود (مثل شركة أو منتج)
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEntityNotFound(
             EntityNotFoundException ex,
@@ -38,12 +39,35 @@ public class GlobalExceptionHandler {
         return ApiErrorBuilder.notFound(ex.getMessage(), request.getRequestURI());
     }
 
-    // ✅ 3. أي خطأ غير متوقع
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(
             Exception ex,
             HttpServletRequest request) {
 
-        return ApiErrorBuilder.serverError(ex.getMessage(), request.getRequestURI());
+        return ApiErrorBuilder.serverError("Something went wrong", request.getRequestURI());
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ErrorResponse> handleJwtException(
+            JwtException ex,
+            HttpServletRequest request) {
+
+        return ApiErrorBuilder.unauthorized(ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<ErrorResponse> handleIOException(
+            IOException ex,
+            HttpServletRequest request) {
+
+        return ApiErrorBuilder.ioError(ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ErrorResponse> handleExpiredJwtException(
+            ExpiredJwtException ex,
+            HttpServletRequest request) {
+
+        return ApiErrorBuilder.unauthorized("JWT token has expired", request.getRequestURI());
     }
 }

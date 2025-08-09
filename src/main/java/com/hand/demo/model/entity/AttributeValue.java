@@ -2,6 +2,8 @@ package com.hand.demo.model.entity;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,6 +24,7 @@ public class AttributeValue {
     @OneToMany(mappedBy ="attributeValue")
     private List <AttributeValueImage> attributeValueImages;
     @ManyToOne
+    @JsonIgnore
     private Attribute attribute;
 
 }

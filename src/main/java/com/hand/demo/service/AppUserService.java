@@ -1,6 +1,5 @@
 package com.hand.demo.service;
 
-import com.hand.demo.auth.AuthorizedUserService;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -20,14 +19,13 @@ import org.springframework.stereotype.Service;
 import com.hand.demo.model.Dtos.AppUserDto;
 import com.hand.demo.model.repository.AppUserProjection;
 import com.hand.demo.model.repository.AppUserRepository;
-import java.util.ArrayList;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 
 public class AppUserService implements UserDetailsService {
 
-    @Autowired
-    private AuthorizedUserService authorized;
 
     @Autowired
     private AppUserRepository appUserRepository;
@@ -41,7 +39,7 @@ public class AppUserService implements UserDetailsService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UsernameNotFoundException("user not found");
+            throw new EntityNotFoundException("user not found");
         }
 
         Object principal = authentication.getPrincipal();
@@ -60,18 +58,17 @@ public class AppUserService implements UserDetailsService {
         System.out.println(results.get(0).getUsername() + " " + results.get(0).getPassword());
 
         if (results.isEmpty()) {
-            throw new UsernameNotFoundException("User not found");
+            throw new EntityNotFoundException("User not found");
         }
-        var first =results.get(0);
+        var first = results.get(0);
 
-        // نجمع الأدوار في Collection<GrantedAuthority>
         Collection<GrantedAuthority> authorities = results.stream()
                 .map(r -> new SimpleGrantedAuthority(r.getRoleName()))
                 .collect(java.util.stream.Collectors.toList());
         System.out.println(first.getUsername() + " " + first.getPassword());
-        return new AppUserDto(
-                first.getUsername(),
-                first.getPassword(),
+        return new AppUserDto(first.getUsername(), first.getPassword(),
+                first.isEnabled(), first.isAccountNonExpired(),
+                first.isCredentialsNonExpired(), first.isAccountNonLocked(),
                 authorities);
     }
 

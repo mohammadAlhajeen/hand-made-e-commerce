@@ -35,4 +35,12 @@ public class ApiErrorBuilder {
     public static ResponseEntity<ErrorResponse> serverError(String message, String path) {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, List.of(message), path, "Server Error");
     }
+
+    public static ResponseEntity<ErrorResponse> unauthorized(String message, String path) {
+        return build(HttpStatus.UNAUTHORIZED, List.of(message), path, "Unauthorized");
+    }
+
+    public static ResponseEntity<ErrorResponse> ioError(String message, String path) {
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, List.of(message), path, "IO Error");
+    }
 }

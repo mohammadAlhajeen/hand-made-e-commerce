@@ -3,9 +3,9 @@ package com.hand.demo.model.repository;
 public interface AppUserProjection {
     String getUsername();
     String getPassword();
-    boolean getEnabled();
-    boolean getAccountNonExpired();
-    boolean getCredentialsNonExpired();
-    boolean getAccountNonLocked();
-    String getRoleName(); // كل صف يحتوي Role واحد
+    boolean isEnabled();
+    boolean isAccountNonExpired();
+    boolean isCredentialsNonExpired();
+    boolean isAccountNonLocked();
+    String getRoleName();
 }
