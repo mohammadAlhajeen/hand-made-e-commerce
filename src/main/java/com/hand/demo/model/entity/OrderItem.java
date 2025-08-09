@@ -6,9 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -26,46 +28,45 @@ import lombok.Data;
 @Entity
 @Table(name = "order_items")
 @SQLDelete(sql = "UPDATE order_items SET deleted = true WHERE id = ?")
+@SQLRestriction("deleted = false")
 public class OrderItem {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ✅ ربط الطلب
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    // ✅ Snapshot ثابت للمنتج
+    @Embedded
+    private ProductSnapshot productSnapshot;
 
     @Column(nullable = false)
     private Integer quantity;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+    private BigDecimal basePrice;
 
-    @Column(precision = 10, scale = 2)
-    private BigDecimal tax = BigDecimal.ZERO;
+    @Column(name = "tax_rate", precision = 5, scale = 2)
+    private BigDecimal taxRate = BigDecimal.ZERO;
 
-    @Column(name = "attribute_price", precision = 10, scale = 2)
-    private BigDecimal attributePrice = BigDecimal.ZERO;
+    @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItemAttributeValue> attributeValues = new ArrayList<>();
 
-    @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL)
-    private List<OrderItemAttributeValue> attributeValues = new ArrayList<>(10);
+    @Column(name = "total_price", precision = 10, scale = 2)
+    private BigDecimal totalPrice = BigDecimal.ZERO;
+
+    @Column(name = "deleted")
+    private boolean deleted = false;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @Column(name = "deleted")
-    private boolean deleted = false;
-
-    // Calculated total price including attributes and tax
-    @Column(name = "total_price", precision = 10, scale = 2)
-    private BigDecimal totalPrice = BigDecimal.ZERO;
 
     @PrePersist
     protected void onCreate() {
@@ -80,18 +81,15 @@ public class OrderItem {
         calculateTotalPrice();
     }
 
-    private void calculateTotalPrice() {
-        // Base price * quantity
-        BigDecimal baseTotal = price.multiply(BigDecimal.valueOf(quantity));
-        
-        // Add attribute prices
-        BigDecimal attrTotal = attributePrice != null ? attributePrice : BigDecimal.ZERO;
-        
-        // Add tax
-        BigDecimal totalWithAttr = baseTotal.add(attrTotal);
-        BigDecimal taxAmount = tax != null ? totalWithAttr.multiply(tax) : BigDecimal.ZERO;
-        
-        // Set total price
-        this.totalPrice = totalWithAttr.add(taxAmount);
+    public void calculateTotalPrice() {
+        BigDecimal baseTotal = basePrice.multiply(BigDecimal.valueOf(quantity));
+        BigDecimal attrTotal = attributeValues.stream()
+                .map(OrderItemAttributeValue::getPriceIncrement)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal subtotal = baseTotal.add(attrTotal);
+        BigDecimal taxAmount = taxRate != null ? subtotal.multiply(taxRate) : BigDecimal.ZERO;
+
+        this.totalPrice = subtotal.add(taxAmount);
     }
 }

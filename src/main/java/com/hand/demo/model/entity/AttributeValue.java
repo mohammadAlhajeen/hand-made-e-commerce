@@ -1,5 +1,7 @@
 package com.hand.demo.model.entity;
 
+import java.util.List;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -7,7 +9,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.List;
 import lombok.Data;
 
 @Entity
@@ -19,7 +20,7 @@ public class AttributeValue {
     private Long id;
     private String value;
     @OneToMany(mappedBy ="attributeValue")
-    private List <ImageUrl> imageUrl;
+    private List <AttributeValueImage> attributeValueImages;
     @ManyToOne
     private Attribute attribute;
 

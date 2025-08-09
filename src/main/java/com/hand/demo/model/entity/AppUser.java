@@ -4,16 +4,17 @@
  */
 package com.hand.demo.model.entity;
 
-import com.hand.demo.model.Dtos.AppUserRegisterDTO;
-import com.hand.demo.model.Dtos.UpdateCompanyDto;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import java.util.Collection;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
+
 import org.hibernate.annotations.SQLDelete;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.hand.demo.model.Dtos.AppUserRegisterDTO;
+import com.hand.demo.model.Dtos.UpdateCompanyDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,7 +33,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotEmpty;
-import java.util.Optional;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,62 +52,61 @@ import lombok.Setter;
 @NoArgsConstructor
 @Table(name = "App_Users")
 public class AppUser implements UserDetails {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @NotEmpty
     @Column(unique = true, nullable = false)
     private String username;
-    
+
     @NotEmpty
     @Column(nullable = false)
     private String password;
-    
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_In")
-     private Date createdIn = new Date();
+    private Date createdIn = new Date();
     @Column(nullable = false)
     private String name;
-    
+
     private String phone;
-    @JsonManagedReference("ImageUrl_AppUser")
-    @OneToOne(mappedBy = "appUser", fetch = FetchType.LAZY)
-    private ImageUrl urlImgs;
-    
+
+    @OneToOne( fetch = FetchType.LAZY)
+    private AppUserImage appUserImage;
+
     @Column(nullable = false)
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "app_user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
-        @Column(nullable = false)
+    @Column(nullable = false)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "app_user_address", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "address_id"))
     private Set<Address> address;
-    
 
     private boolean deleted = false;
-    
+
     private String urlLocation;
-    
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles;
     }
-    
+
     @PrePersist
     public void prePersist() {
         this.createdIn = new Date();
         this.deleted = false;
     }
-    
+
     public void updateDtoToAppUser(UpdateCompanyDto updateCompanyDto) {
         this.setName(Optional.ofNullable(updateCompanyDto.getName()).orElse(this.getName()));
         this.setPhone(Optional.ofNullable(updateCompanyDto.getPhone()).orElse(this.getPhone()));
         this.setUrlLocation(Optional.ofNullable(updateCompanyDto.getUrlLocation()).orElse(this.getUrlLocation()));
-        
+
     }
-    
+
     public void RegisterDtoToAppUser(AppUserRegisterDTO appUserRegisterDTO) {
         this.setName(appUserRegisterDTO.getName());
         this.setPassword(appUserRegisterDTO.getPassword());
@@ -117,7 +116,4 @@ public class AppUser implements UserDetails {
         this.setDeleted(false);
     }
 
-    
-
-    
 }

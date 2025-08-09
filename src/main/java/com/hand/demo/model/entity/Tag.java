@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.annotations.SQLDelete;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,19 +13,22 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "tags")
-@SQLDelete(sql = "UPDATE tags SET deleted=true WHERE id=?")
+@Table(
+  name = "tags",
+  uniqueConstraints = @UniqueConstraint(columnNames = "name")
+)
 
 public class Tag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100, columnDefinition = "varchar(100) collate utf8mb4_0900_ai_ci")
     private String name;
 
     @ManyToMany(mappedBy = "tags")

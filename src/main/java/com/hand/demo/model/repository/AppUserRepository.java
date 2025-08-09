@@ -28,6 +28,7 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     @Query("""
             SELECT u.username AS username,
                    u.password AS password,
+                
                    r.name AS roleName
             FROM AppUser u
             JOIN u.roles r

@@ -34,7 +34,7 @@ public class AppUserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-       return loadUserDto(username);
+        return loadUserDto(username);
     }
 
     protected Optional<UserDetails> userAuthorization() {
@@ -54,20 +54,21 @@ public class AppUserService implements UserDetailsService {
     }
 
     public AppUserDto loadUserDto(String username) {
-        List<AppUserProjection> results ;
-               results= appUserRepository.findUserWithRoles(username);
+        List<AppUserProjection> results;
+        results = appUserRepository.findUserWithRoles(username);
+
+        System.out.println(results.get(0).getUsername() + " " + results.get(0).getPassword());
 
         if (results.isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         }
-
-        AppUserProjection first = results.get(0);
+        var first =results.get(0);
 
         // نجمع الأدوار في Collection<GrantedAuthority>
         Collection<GrantedAuthority> authorities = results.stream()
                 .map(r -> new SimpleGrantedAuthority(r.getRoleName()))
                 .collect(java.util.stream.Collectors.toList());
-
+        System.out.println(first.getUsername() + " " + first.getPassword());
         return new AppUserDto(
                 first.getUsername(),
                 first.getPassword(),

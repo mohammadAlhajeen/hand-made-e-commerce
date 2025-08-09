@@ -1,8 +1,5 @@
 package com.hand.demo.service;
 
-import com.hand.demo.model.entity.AppUser;
-import com.hand.demo.model.entity.ImageUrl;
-import com.hand.demo.model.repository.ImageUrlRepository;
 import java.beans.Transient;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,8 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.hand.demo.model.entity.ImageUrl;
+import com.hand.demo.model.repository.ImageUrlRepository;
 
 import staticClasses.FileValidator;
 
@@ -58,18 +55,6 @@ public class ImageUrlService {
 
         // حفظ الرابط في قاعدة البيانات
         return "/images/" + fileName;
-    }
-
-    public ImageUrl saveImage(AppUser user, MultipartFile file) throws IOException {
-        ImageUrl imgUrl = new ImageUrl(saveImage(file), user);
-        imageUrlRepository.save(imgUrl);
-        return imgUrl;
-    }
-
-    public ImageUrl saveImageInDataBase(MultipartFile file) throws IOException {
-        ImageUrl imgUrl = new ImageUrl(saveImage(file));
-        imageUrlRepository.save(imgUrl);
-        return imgUrl;
     }
 
     @Transient

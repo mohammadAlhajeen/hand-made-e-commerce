@@ -5,7 +5,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,6 +30,8 @@ import lombok.Data;
 @Entity
 @Table(name = "products")
 @SQLDelete(sql = "UPDATE products SET deleted = true WHERE id = ?")
+@SQLRestriction(value = "deleted = false")
+
 public class Product {
 
     @Id
@@ -56,35 +60,59 @@ public class Product {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    @Column(name = "average_rating")
+    private Double averageRating = 0.0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 
-    @ManyToMany(mappedBy = "products")
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "products")
     private List<Category> categories;
 
-    @OneToMany(mappedBy = "product")
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "products")
+    private List<Cart> carts;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "product_tags",
+        joinColumns = @JoinColumn(name = "product_id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private List<Tag> tags;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ImageUrl> images;
 
-    @OneToMany(mappedBy = "product")
-    List<Attribute> attribute;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Attribute> attributes;
 
-    @ManyToMany(mappedBy = "products")
-    private List<Cart> cart;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments;
 
     @Column(name = "deleted")
-    private boolean deleted;
+    private boolean deleted = false;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "product_roles", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
 
-    List<Tag> tags;
+    // ================================
+    // Enums
+    // ================================
+    public enum AvailabilityStatus {
+        IN_STOCK,
+        MADE_TO_ORDER
+    }
 
+    // ================================
+    // Lifecycle Hooks
+    // ================================
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -96,8 +124,30 @@ public class Product {
         updatedAt = LocalDateTime.now();
     }
 
-    public enum AvailabilityStatus {
-        IN_STOCK,
-        MADE_TO_ORDER
+    // ================================
+    // Helper Methods
+    // ================================
+    public void setImages(List<ImageUrl> images) {
+        this.images = images;
+        if (images != null) {
+            images.forEach(img -> img.setProduct(this));
+        }
+    }
+
+    public void setAttributes(List<Attribute> attributes) {
+        this.attributes = attributes;
+        if (attributes != null) {
+            attributes.forEach(attr -> attr.setProduct(this));
+        }
+    }
+
+    public void addReview(Review review) {
+        this.reviews.add(review);
+        review.setProduct(this);
+    }
+
+    public void addComment(Comment comment) {
+        this.comments.add(comment);
+        comment.setProduct(this);
     }
 }

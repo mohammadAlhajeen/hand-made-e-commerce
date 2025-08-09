@@ -25,6 +25,7 @@ import lombok.Data;
 @Entity
 @Table(name = "attributes")
 public class Attribute {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -67,5 +68,12 @@ public class Attribute {
         TEXT,
         NUMBER,
         SELECT
+    }
+
+    public void setAttributeValues(List<AttributeValue> attributeValues) {
+        this.attributeValues = attributeValues;
+        if (attributeValues != null && !attributeValues.isEmpty()) {
+            attributeValues.forEach(attVal -> attVal.setAttribute(this));
+        }
     }
 }

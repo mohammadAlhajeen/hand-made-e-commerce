@@ -38,7 +38,7 @@ public class Cart {
             joinColumns = @JoinColumn(name = "cart_id"),
             inverseJoinColumns = @JoinColumn(name = "product_id")
     )
-    private List<Product> products = new ArrayList<>();
+    private List<Product> products = new ArrayList<>(5);
 
     @Column(nullable = false)
     private Integer quantity;

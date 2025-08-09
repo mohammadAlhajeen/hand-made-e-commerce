@@ -1,13 +1,14 @@
 package com.hand.demo.service;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.tika.utils.StringUtils;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,31 +16,27 @@ import com.hand.demo.auth.AuthResponse;
 import com.hand.demo.config.JwtService;
 import com.hand.demo.model.Dtos.AppUserRegisterDTO;
 import com.hand.demo.model.Dtos.UpdateCompanyDto;
-
 import com.hand.demo.model.entity.Address;
 import com.hand.demo.model.entity.Company;
-
+import com.hand.demo.model.entity.Product;
 import com.hand.demo.model.repository.AddressRepository;
 import com.hand.demo.model.repository.AppUserRepository;
 import com.hand.demo.model.repository.CompanyRepository;
 
 import jakarta.transaction.Transactional;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class CompanyService extends AppUserService {
 
+    private final ProductService productService;
 
     private final AppUserRepository appUserRepository;
     private final CompanyRepository companyRepository;
     private final JwtService jwtService;
-    private final ImageUrlService imageUrlService;
-  
+    private final AppUserImageService appUserImageService;
     private final AddressRepository addressRepository;
 
     public Company findCompanyById(Long id) {
@@ -91,16 +88,13 @@ public class CompanyService extends AppUserService {
     }
 
     public void addCompanyImg(Company company, MultipartFile file) throws IOException {
-        if (company.getUrlImgs() == null) {
-            imageUrlService.saveImage(company, file);
+        if (company.getAppUserImage() == null) {
+
+            appUserImageService.save(file, company);
         } else {
-            imageUrlService.UpdateImageUrl(file, company.getUrlImgs());
+            appUserImageService.UpdateImageUrl(file, company.getAppUserImage());
         }
     }
 
-
-
-
-
-
 }
+

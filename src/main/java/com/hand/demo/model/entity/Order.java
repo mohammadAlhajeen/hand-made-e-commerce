@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -29,6 +30,8 @@ import lombok.Data;
 @Entity
 @Table(name = "orders")
 @SQLDelete(sql = "UPDATE orders SET deleted = true WHERE id = ?")
+@SQLRestriction("deleted = false")
+
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
