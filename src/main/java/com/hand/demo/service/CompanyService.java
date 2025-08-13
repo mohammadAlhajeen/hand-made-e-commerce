@@ -2,13 +2,10 @@ package com.hand.demo.service;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import org.apache.tika.utils.StringUtils;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,11 +15,11 @@ import com.hand.demo.model.Dtos.AppUserRegisterDTO;
 import com.hand.demo.model.Dtos.UpdateCompanyDto;
 import com.hand.demo.model.entity.Address;
 import com.hand.demo.model.entity.Company;
-import com.hand.demo.model.entity.Product;
 import com.hand.demo.model.repository.AddressRepository;
 import com.hand.demo.model.repository.AppUserRepository;
 import com.hand.demo.model.repository.CompanyRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -45,10 +42,10 @@ public class CompanyService extends AppUserService {
 
     public Company saveCompany(AppUserRegisterDTO registerDTO) throws IOException {
         if (StringUtils.isBlank(registerDTO.getUsername()) || StringUtils.isBlank(registerDTO.getPassword())) {
-            throw new RuntimeException("Please fill all fields");
+            throw new EntityNotFoundException("Please fill all fields");
         }
         if (appUserRepository.existsByUsername(registerDTO.getUsername())) {
-            throw new RuntimeException("Invalid Username");
+            throw new EntityNotFoundException("Invalid Username");
         }
         registerDTO.setPassword(passwordEncoder().encode(registerDTO.getPassword()));
         Company company = new Company();
@@ -59,7 +56,7 @@ public class CompanyService extends AppUserService {
         }
         companyRepository.save(company);
         return company;
-    }
+    } 
 
     public AuthResponse CreateCompany(AppUserRegisterDTO registerDTO, MultipartFile file) throws IOException {
         Company company = saveCompany(registerDTO);

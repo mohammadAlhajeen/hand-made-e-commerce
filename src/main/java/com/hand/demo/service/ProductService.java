@@ -69,6 +69,13 @@ public class ProductService {
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with ID: " + id));
         return new GetProductDto(product);
     }
-    
+
+    public List<com.hand.demo.model.repository.GetProductCardProjection> getProductCardLists(Company company) {
+
+
+       List<com.hand.demo.model.repository.GetProductCardProjection> productCardDto = productRepo.findAllProjectedByCompanyId(company.getId());
+        return productCardDto;
+
+    }
 
 }

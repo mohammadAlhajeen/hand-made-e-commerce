@@ -89,36 +89,16 @@ public class AppUser implements UserDetails {
 
     private String urlLocation;
 
-    private boolean accountNonLocked = true;
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date accountExpirationDate;
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date credentialsExpirationDate;
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles;
     }
 
-    @Override
-    public boolean isEnabled() {
-        return !this.deleted;
-    }
+ 
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return accountExpirationDate == null || accountExpirationDate.after(new Date());
-    }
 
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return credentialsExpirationDate == null || credentialsExpirationDate.after(new Date());
-    }
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return accountNonLocked;
-    }
+
 
     @PrePersist
     public void prePersist() {

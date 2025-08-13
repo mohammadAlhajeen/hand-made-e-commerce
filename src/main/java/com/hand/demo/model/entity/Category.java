@@ -27,13 +27,15 @@ import lombok.Data;
 @Table(name = "categories")
 @SQLDelete(sql = "UPDATE categories SET deleted = true WHERE id=?")
 public class Category {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String name;
-
+    @Column(unique = true, nullable = false)
+    private String slug;
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -45,9 +47,9 @@ public class Category {
 
     @ManyToMany
     @JoinTable(
-        name = "category_product",
-        joinColumns = @JoinColumn(name = "category_id"),
-        inverseJoinColumns = @JoinColumn(name = "product_id")
+            name = "category_product",
+            joinColumns = @JoinColumn(name = "category_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id")
     )
     private List<Product> products;
 
@@ -62,6 +64,9 @@ public class Category {
 
     @PrePersist
     protected void onCreate() {
+        if (this.slug == null) {
+            slug = name;
+        }
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }

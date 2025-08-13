@@ -13,19 +13,18 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "tags", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
+@Table(name = "tags")
 
 public class Tag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100, columnDefinition = "varchar(100) collate utf8mb4_0900_ai_ci")
+    @Column( unique = true, nullable = false, length = 100)
     private String name;
 
     @ManyToMany(mappedBy = "tags")
@@ -44,10 +43,15 @@ public class Tag {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (name != null) name = name.trim().toLowerCase();
+
     }
+
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+        if (name != null) name = name.trim().toLowerCase();
+
     }
 }

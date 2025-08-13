@@ -70,7 +70,6 @@ public class CreateProductDto {
                         AttributeValue val = new AttributeValue();
                         val.setValue(valDTO.getValue());
                         val.setAttribute(attribute);
-
                         if (valDTO.getImageUrls() != null) {
                             List<AttributeValueImage> imgs = valDTO.getImageUrls().stream()
                                     .map(url -> {

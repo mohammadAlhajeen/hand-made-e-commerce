@@ -1,0 +1,13 @@
+-- Ensure ROLE_COMPANY exists
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM roles WHERE role_name = 'ROLE_COMPANY') THEN
+        INSERT INTO roles VALUES (1,'ROLE_COMPANY');
+    END IF;
+        IF NOT EXISTS (SELECT 1 FROM roles WHERE role_name = 'ROLE_DRIVER') THEN
+        INSERT INTO roles  VALUES (2,'ROLE_DRIVER');
+    END IF;
+         IF NOT EXISTS (SELECT 1 FROM roles WHERE role_name = 'ROLE_CUSTOMER') THEN
+        INSERT INTO roles  VALUES (3,'ROLE_CUSTOMER');
+    END IF;
+END $$;

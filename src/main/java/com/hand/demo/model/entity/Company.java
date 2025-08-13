@@ -4,11 +4,11 @@
  */
 package com.hand.demo.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,9 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
-
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,7 +33,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @Builder
-@Table(name = "companys")
+@Table(name = "companies")
 public class Company extends AppUser {
 
     @ManyToMany(fetch = FetchType.LAZY)

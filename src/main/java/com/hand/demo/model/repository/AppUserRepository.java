@@ -10,6 +10,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import com.hand.demo.model.entity.AppUser;
 
@@ -17,6 +18,7 @@ import com.hand.demo.model.entity.AppUser;
  *
  * @author Mohammad
  */
+@Repository
 public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
     @Query("SELECT u FROM AppUser u WHERE u.deleted=false AND u.username = :username")
@@ -27,11 +29,7 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     @Query("""
             SELECT u.username AS username,
                 u.password AS password,
-                u.enabled AS enabled,
-                u.accountNonExpired AS accountNonExpired,
-                u.credentialsNonExpired AS credentialsNonExpired,
-                u.accountNonLocked AS accountNonLocked,
-                r.name AS roleName
+               r.name AS roleName
             FROM AppUser u
             JOIN u.roles r
             WHERE u.deleted = false AND u.username = :username

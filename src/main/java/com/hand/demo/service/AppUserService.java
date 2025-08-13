@@ -55,20 +55,17 @@ public class AppUserService implements UserDetailsService {
         List<AppUserProjection> results;
         results = appUserRepository.findUserWithRoles(username);
 
-        System.out.println(results.get(0).getUsername() + " " + results.get(0).getPassword());
 
         if (results.isEmpty()) {
             throw new EntityNotFoundException("User not found");
         }
         var first = results.get(0);
-
         Collection<GrantedAuthority> authorities = results.stream()
                 .map(r -> new SimpleGrantedAuthority(r.getRoleName()))
                 .collect(java.util.stream.Collectors.toList());
-        System.out.println(first.getUsername() + " " + first.getPassword());
         return new AppUserDto(first.getUsername(), first.getPassword(),
-                first.isEnabled(), first.isAccountNonExpired(),
-                first.isCredentialsNonExpired(), first.isAccountNonLocked(),
+               
+
                 authorities);
     }
 
