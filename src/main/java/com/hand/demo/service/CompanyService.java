@@ -19,7 +19,6 @@ import com.hand.demo.model.repository.AddressRepository;
 import com.hand.demo.model.repository.AppUserRepository;
 import com.hand.demo.model.repository.CompanyRepository;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -42,10 +41,10 @@ public class CompanyService extends AppUserService {
 
     public Company saveCompany(AppUserRegisterDTO registerDTO) throws IOException {
         if (StringUtils.isBlank(registerDTO.getUsername()) || StringUtils.isBlank(registerDTO.getPassword())) {
-            throw new EntityNotFoundException("Please fill all fields");
+            throw new IllegalArgumentException("Please fill all fields");
         }
         if (appUserRepository.existsByUsername(registerDTO.getUsername())) {
-            throw new EntityNotFoundException("Invalid Username");
+            throw new IllegalArgumentException("Invalid Username");
         }
         registerDTO.setPassword(passwordEncoder().encode(registerDTO.getPassword()));
         Company company = new Company();

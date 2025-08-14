@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.security.auth.login.CredentialException;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -69,5 +71,26 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
 
         return ApiErrorBuilder.unauthorized("JWT token has expired", request.getRequestURI());
+    }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(
+            IllegalArgumentException ex,
+            HttpServletRequest request) {
+
+        return ApiErrorBuilder.illegalArgumentException(ex.getMessage(), request.getRequestURI());
+    }
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<ErrorResponse> handleNullPointer(
+            NullPointerException ex,
+            HttpServletRequest request) {
+
+        return ApiErrorBuilder.serverError("Null pointer exception", request.getRequestURI());
+    }
+    @ExceptionHandler(CredentialException.class)
+    public ResponseEntity<ErrorResponse> handleCredentialException(
+            CredentialException ex,
+            HttpServletRequest request) {
+
+        return ApiErrorBuilder.unauthorized(ex.getMessage(), request.getRequestURI());
     }
 }

@@ -30,8 +30,7 @@ public class Review {
     private Long id;
 
     @Column(nullable = false)
-    private int rating; // من 1 إلى 5 مثلاً
-
+    private byte rating=1; 
     @Column(length = 255)
     private String shortComment;
 
@@ -40,14 +39,15 @@ public class Review {
     private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private AppUser user;
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
+
         createdAt = LocalDateTime.now();
     }
 }

@@ -13,7 +13,7 @@ BEGIN
       TEMPLATE  = ispell,
       DictFile  = ar,
       AffFile   = ar,
-      StopWords = ar,
+      StopWords = ar
   
     );
   END IF;
@@ -146,4 +146,28 @@ LANGUAGE sql
 STABLE   -- ممكن تبقيها IMMUTABLE أيضًا، بس STABLE كافية للاستعلام
 AS $$
   SELECT plainto_tsquery('arabic', ar_normalize(q));
+$$;
+-- تطبيع إنجليزي بسيط
+CREATE OR REPLACE FUNCTION en_normalize(txt text)
+RETURNS text LANGUAGE sql IMMUTABLE AS $$
+  SELECT lower(unaccent(coalesce($1,'')));
+$$;
+
+-- فهرسة عربي + إنجليزي
+CREATE OR REPLACE FUNCTION ar_en_tsvector(txt text)
+RETURNS tsvector LANGUAGE sql IMMUTABLE AS $$
+  SELECT
+      coalesce(ar_tsvector_enriched(txt), ''::tsvector)
+   || to_tsvector('english', en_normalize(txt));
+$$;
+
+-- بحث عربي + إنجليزي
+CREATE OR REPLACE FUNCTION ar_en_tsquery(q text)
+RETURNS tsquery
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT
+      plainto_tsquery('arabic',  ar_normalize(q))
+   || plainto_tsquery('english', en_normalize(q));
 $$;

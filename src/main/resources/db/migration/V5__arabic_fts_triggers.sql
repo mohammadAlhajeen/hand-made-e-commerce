@@ -12,21 +12,22 @@ CREATE OR REPLACE FUNCTION search_products_cards(
   p_offset int  DEFAULT 0
 )
 RETURNS TABLE (
-  id               bigint,
-  name             text,
-  description      text,
-  price            numeric,
-  "mainImageUrl"   text,
-  "preparationDays" int
+  id                bigint,
+  name              text,
+  description       text,
+  price             numeric,
+  "mainImageUrl"    text,
+  "preparationDays" int,
+  "averageRating"   numeric
 )
 LANGUAGE sql
 STABLE
 AS $$
 WITH q AS (
   SELECT
-    ar_en_tsquery(p_query)   AS tsq,
-    ar_normalize(p_query)    AS nq_ar,
-    en_normalize(p_query)    AS nq_en
+    ar_en_tsquery(p_query) AS tsq,
+    ar_normalize(p_query)  AS nq_ar,
+    en_normalize(p_query)  AS nq_en
 ),
 ranks AS (
   SELECT
@@ -36,11 +37,11 @@ ranks AS (
     p.price,
     p.preparation_days,
 
-    -- subquery لجلب الصورة الرئيسية
+    -- الصورة الرئيسية
     (
       SELECT iu.url
-      FROM image_url iu join product_images pi 
-	  on iu.id= pi.id
+      FROM image_url iu
+      JOIN product_images pi ON iu.id = pi.id   -- ابقِها حسب سكيمتك الحالية
       WHERE pi.product_id = p.id
         AND pi.is_main = true
       LIMIT 1
@@ -62,21 +63,25 @@ ranks AS (
   FROM product_search ps
   JOIN products p ON p.id = ps.product_id
   CROSS JOIN q
-  WHERE ps.fts_all @@ q.tsq OR similarity(ar_normalize(p.name), q.nq_ar) > 0.3
-OR similarity(en_normalize(p.name), q.nq_en) > 0.3
-
+  WHERE
+    ps.fts_all @@ q.tsq
+    OR similarity(ar_normalize(p.name), q.nq_ar) > 0.3
+    OR similarity(en_normalize(p.name), q.nq_en) > 0.3
 )
 SELECT
-  id,
-  name,
-  description,
-  price,
-  main_image_url   AS "mainImageUrl",
-  preparation_days AS "preparationDays"
-FROM ranks
-ORDER BY score DESC, id
+  r.id,
+  r.name,
+  r.description,
+  r.price,
+  r.main_image_url   AS "mainImageUrl",
+  r.preparation_days AS "preparationDays",
+  COALESCE(mr.average_rating, 0)::numeric(4,2) AS "averageRating"
+FROM ranks r
+LEFT JOIN avg_rating mr ON mr.product_id = r.id
+ORDER BY r.score DESC, r.id
 LIMIT p_limit OFFSET p_offset;
 $$;
+
 
 
 -- فهرس GIN على المجمّع

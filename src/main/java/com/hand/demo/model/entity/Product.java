@@ -21,6 +21,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -54,14 +55,16 @@ public class Product {
     @Column(name = "availability_status", nullable = false)
     private AvailabilityStatus availabilityStatus = AvailabilityStatus.IN_STOCK;
 
-    @Column(name = "preparation_days", nullable = false)
-    private Integer preparationDays = 0;
+    @Column(name = "preparation_days", nullable = true)
+    private Integer preparationDays;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
+    // Computed by DB triggers; mapped for read/write convenience
     @Column(name = "average_rating")
-    private Double averageRating = 0.0;
+    private Double averageRating;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
@@ -79,7 +82,8 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images;
-
+    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private AvgRating avgRating;
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Attribute> attributes;
 
@@ -107,6 +111,7 @@ public class Product {
     // Pre data base
     @PrePersist
     protected void onCreate() {
+        avgRating = new AvgRating(this);
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
@@ -116,7 +121,7 @@ public class Product {
         updatedAt = LocalDateTime.now();
     }
 
-    //Methods
+    // Methods
     public void setImages(List<ProductImage> images) {
         this.images = images;
         if (images != null) {

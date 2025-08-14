@@ -1,10 +1,12 @@
 package com.hand.demo.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.hand.demo.model.Dtos.GetProductDto;
+import com.hand.demo.model.Dtos.RatingDistributionDto;
 import com.hand.demo.model.Dtos.product_dtos.CreateProductDto;
 import com.hand.demo.model.entity.Category;
 import com.hand.demo.model.entity.Company;
@@ -12,6 +14,7 @@ import com.hand.demo.model.entity.Product;
 import com.hand.demo.model.entity.ProductImage;
 import com.hand.demo.model.entity.Tag;
 import com.hand.demo.model.repository.CategoryRepository;
+import com.hand.demo.model.repository.GetProductCardProjection;
 import com.hand.demo.model.repository.ProductRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -72,10 +75,47 @@ public class ProductService {
 
     public List<com.hand.demo.model.repository.GetProductCardProjection> getProductCardLists(Company company) {
 
-
-       List<com.hand.demo.model.repository.GetProductCardProjection> productCardDto = productRepo.findAllProjectedByCompanyId(company.getId());
+        List<com.hand.demo.model.repository.GetProductCardProjection> productCardDto = productRepo
+                .findAllProjectedByCompanyId(company.getId());
         return productCardDto;
 
+    }
+
+    // Search products cards by product name (native search function)
+    public List<GetProductCardProjection> searchProductCards(String productName) {
+        if (productName == null) {
+            productName = "";
+        }
+        return productRepo.searchGetProductCardProjections(productName);
+    }
+
+    // Get a single product card projection by exact product name
+    public GetProductCardProjection getProductCardByName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("name must not be blank");
+        }
+        return productRepo.findProjectedByName(name);
+    }
+
+    // ##############################
+    // #### Rating distribution #####
+    // ##############################
+    public RatingDistributionDto getRatingDistribution(Long productId) {
+        Product product = productRepo.findById(productId)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with ID: " + productId));
+
+        var mr = product.getAvgRating();
+        if (mr == null) {
+            return new RatingDistributionDto(0, 0, 0, 0, 0, 0, BigDecimal.ZERO);
+        }
+        long count = mr.getRatingCount();
+        long one = count == 0 ? 0 : (mr.getOneRating() * 100) / count;
+        long two = count == 0 ? 0 : (mr.getTwoRating() * 100) / count;
+        long three = count == 0 ? 0 : (mr.getThreeRating() * 100) / count;
+        long four = count == 0 ? 0 : (mr.getFourRating() * 100) / count;
+        long five = count == 0 ? 0 : (mr.getFiveRating() * 100) / count;
+        BigDecimal avg = (mr.getAverageRating() == null ? BigDecimal.ZERO : mr.getAverageRating());
+        return new RatingDistributionDto(one, two, three, four, five, count, avg);
     }
 
 }

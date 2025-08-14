@@ -31,6 +31,10 @@ public class ApiErrorBuilder {
     public static ResponseEntity<ErrorResponse> notFound(String message, String path) {
         return build(HttpStatus.NOT_FOUND, List.of(message), path, "Not Found");
     }
+    public static ResponseEntity<ErrorResponse> illegalArgumentException(String message, String path) {
+        return build(HttpStatus.BAD_REQUEST, List.of(message), path, "invalid inputs");
+    }
+
 
     public static ResponseEntity<ErrorResponse> serverError(String message, String path) {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, List.of(message), path, "Server Error");
