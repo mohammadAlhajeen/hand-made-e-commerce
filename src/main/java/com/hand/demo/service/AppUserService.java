@@ -2,7 +2,8 @@ package com.hand.demo.service;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+
+import javax.security.auth.login.CredentialException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -35,19 +36,19 @@ public class AppUserService implements UserDetailsService {
         return loadUserDto(username);
     }
 
-    protected Optional<UserDetails> userAuthorization() {
+    protected UserDetails userAuthorization() throws CredentialException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new EntityNotFoundException("user not found");
+            throw new CredentialException("user not found");
         }
 
         Object principal = authentication.getPrincipal();
 
         if (principal instanceof UserDetails user) {
-            return Optional.of(user);
+            return user;
         } else {
-            return Optional.empty();
+            throw new CredentialException("user not found");
         }
     }
 

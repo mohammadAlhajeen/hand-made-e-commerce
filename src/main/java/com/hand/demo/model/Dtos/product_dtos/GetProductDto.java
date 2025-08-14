@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import com.hand.demo.model.entity.Attribute;
+import com.hand.demo.model.entity.Product.AvailabilityStatus;
 import com.hand.demo.model.entity.ProductImage;
 
 import lombok.Data;
@@ -20,6 +21,7 @@ public class GetProductDto {
     private Integer preparationDays;
     private List<Attribute> attributes;
     private BigDecimal rating;
+    private AvailabilityStatus availabilityStatus = AvailabilityStatus.IN_STOCK;
 
     public GetProductDto(com.hand.demo.model.entity.Product product) {
         this.id = product.getId();
@@ -33,6 +35,8 @@ public class GetProductDto {
         }
         this.productImages = product.getImages();
         this.attributes = product.getAttributes();
-        this.rating = product.getAvgRating().getAverageRating() != null ? product.getAvgRating().getAverageRating() : null;
+        this.rating = product.getAvgRating().getAverageRating() != null ? product.getAvgRating().getAverageRating()
+                : null;
+        this.availabilityStatus = product.getAvailabilityStatus();
     }
 }

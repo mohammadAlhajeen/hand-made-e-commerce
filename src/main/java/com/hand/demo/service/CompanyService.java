@@ -5,7 +5,10 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.security.auth.login.CredentialException;
+
 import org.apache.tika.utils.StringUtils;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,8 +16,10 @@ import com.hand.demo.auth.AuthResponse;
 import com.hand.demo.config.JwtService;
 import com.hand.demo.model.Dtos.AppUserRegisterDTO;
 import com.hand.demo.model.Dtos.UpdateCompanyDto;
+import com.hand.demo.model.Dtos.product_dtos.CreateProductDto;
 import com.hand.demo.model.entity.Address;
 import com.hand.demo.model.entity.Company;
+import com.hand.demo.model.entity.Product;
 import com.hand.demo.model.repository.AddressRepository;
 import com.hand.demo.model.repository.AppUserRepository;
 import com.hand.demo.model.repository.CompanyRepository;
@@ -27,14 +32,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CompanyService extends AppUserService {
 
-    private final ProductService productService;
-
     private final AppUserRepository appUserRepository;
     private final CompanyRepository companyRepository;
     private final JwtService jwtService;
     private final AppUserImageService appUserImageService;
     private final AddressRepository addressRepository;
+    private final ProductService productService;
+    private final ImageUrlService imageUrlService;
 
+    // ################################
+    // ###### Company Operations ######
+    // ################################
     public Company findCompanyById(Long id) {
         return companyRepository.findById(id).orElseThrow(() -> new RuntimeException("Company not fund"));
     }
@@ -55,7 +63,7 @@ public class CompanyService extends AppUserService {
         }
         companyRepository.save(company);
         return company;
-    } 
+    }
 
     public AuthResponse CreateCompany(AppUserRegisterDTO registerDTO, MultipartFile file) throws IOException {
         Company company = saveCompany(registerDTO);
@@ -70,14 +78,14 @@ public class CompanyService extends AppUserService {
                 .build();
     }
 
-    public Company updateCompanyHelper(UpdateCompanyDto companyDto) {
-        super.userAuthorization();
-        Company company = companyRepository.findByUsername(companyDto.getUsername()).get();
+    public Company updateCompanyHelper(UpdateCompanyDto companyDto) throws CredentialException {
+        UserDetails appUser = super.userAuthorization();
+        Company company = companyRepository.findByUsername(appUser.getUsername()).get();
         company.updateDtoToAppUser(companyDto);
         return company;
     }
 
-    public String updateCompany(UpdateCompanyDto companyDto) {
+    public String updateCompany(UpdateCompanyDto companyDto) throws CredentialException {
 
         companyRepository.save(updateCompanyHelper(companyDto));
         return "User Update Successfully";
@@ -85,12 +93,57 @@ public class CompanyService extends AppUserService {
 
     public void addCompanyImg(Company company, MultipartFile file) throws IOException {
         if (company.getAppUserImage() == null) {
-
             appUserImageService.save(file, company);
         } else {
             appUserImageService.UpdateImageUrl(file, company.getAppUserImage());
         }
     }
 
-}
+    // ##################################
+    // ######## Image Operations ########
+    // ##################################
+    public String addImg(MultipartFile file) throws IOException, CredentialException {
+        super.userAuthorization();
+        return imageUrlService.saveImage(file);
+    }
 
+    // ##################################
+    // ####### Product Operations #######
+    // ##################################
+    public Product createProductDto(CreateProductDto productDto) throws CredentialException {
+        UserDetails appUser = super.userAuthorization();
+        Company company = companyRepository.findByUsername(appUser.getUsername())
+                .orElseThrow(() -> new CredentialException("Company not found"));
+        return productService.createProduct(productDto, company);
+    }
+
+    public Product getCompanyProduct(Long productId) throws CredentialException {
+        super.userAuthorization();
+
+        return productService.getCompanyProduct(productId);
+    }
+
+    public java.util.List<com.hand.demo.model.repository.CompanyProductProjection> listMyProducts()
+            throws CredentialException {
+        UserDetails appUser = super.userAuthorization();
+        Company company = companyRepository.findByUsername(appUser.getUsername())
+                .orElseThrow(() -> new CredentialException("Company not found"));
+        return productService.getCompanyProductsForDisplay(company.getId());
+    }
+
+    public Product updateMyProduct(CreateProductDto productDto, Long productId) throws CredentialException {
+        super.userAuthorization();
+        return productService.updateProduct(productDto, productId);
+    }
+
+    public void activateMyProduct(Long productId, boolean active) throws CredentialException {
+        super.userAuthorization();
+        productService.setActive(productId, active);
+    }
+
+    public void deleteMyProduct(Long productId) throws CredentialException {
+        super.userAuthorization();
+        productService.deleteCompanyProduct(productId);
+    }
+
+}

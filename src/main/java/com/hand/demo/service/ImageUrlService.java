@@ -38,7 +38,7 @@ public class ImageUrlService {
         }
 
         // التحقق من نوع الملف الحقيقي
-        FileValidator.validateImageFile(file);
+        FileValidator.validateImageFile(file,1);
 
         // تنظيف اسم الملف الأصلي وإنشاء اسم فريد باستخدام UUID
         String originalExtension = StringUtils.getFilenameExtension(file.getOriginalFilename());

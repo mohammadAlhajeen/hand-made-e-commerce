@@ -18,24 +18,42 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                            SELECT img.url FROM ProductImage img
                            WHERE img.product = p AND img.isMain = true
                        ) AS mainImageUrl,
-                       p.preparationDays AS preparationDays
+                       p.preparationDays AS preparationDays,
+                       p.averageRating AS averageRating
                 FROM Product p
                 WHERE p.company.id = :companyId AND p.isActive = true
             """)
-    List<GetProductCardProjection> findAllProjectedByCompanyId(Long companyId);
-
-    @Query(value = "SELECT * FROM search_products_cards(:productName)", nativeQuery = true)
-    List<GetProductCardProjection> searchGetProductCardProjections(@Param("productName") String productName);
+    List<GetProductCardProjection> findAllActiveProjectedByCompanyId(Long companyId);
 
     @org.springframework.data.jpa.repository.Query("""
-                SELECT p.id AS id, p.name AS name, p.description AS description, p.price AS price,
+                SELECT p.id AS id, p.name AS name,
                        (
                            SELECT img.url FROM ProductImage img
                            WHERE img.product = p AND img.isMain = true
                        ) AS mainImageUrl,
                        p.preparationDays AS preparationDays
                 FROM Product p
+                WHERE p.company.id = :companyId
+                ORDER BY p.isActive DESC, p.createdAt ASC
+            """)
+    List<CompanyProductProjection> retrieveProductsForCompany(Long companyId);
+
+    @Query(value = "SELECT * FROM search_products_cards(:productName)", nativeQuery = true)
+    List<GetProductCardProjection> searchGetProductCardProjections(@Param("productName") String productName);
+
+    @org.springframework.data.jpa.repository.Query("""
+                SELECT p.id AS id, p.name AS name, p.description AS description, p.price AS price,
+                    (
+                        SELECT img.url FROM ProductImage img
+                        WHERE img.product = p AND img.isMain = true
+                    ) AS mainImageUrl,
+                    p.preparationDays AS preparationDays
+                FROM Product p
                 WHERE p.name = :name
             """)
     GetProductCardProjection findProjectedByName(String name);
+
+        // Ownership checks and scoped fetches
+        java.util.Optional<Product> findByIdAndCompanyId(Long id, Long companyId);
+
 }

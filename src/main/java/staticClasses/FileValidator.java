@@ -3,10 +3,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package staticClasses;
-import org.apache.tika.Tika;
 import java.io.IOException;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.tika.Tika;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -28,7 +29,7 @@ public class FileValidator {
     ALLOWED_MIME_TYPES.add("image/webp"); 
     }
 
-    public static void validateImageFile(MultipartFile file) throws IOException {
+    public static void validateImageFile(MultipartFile file,int maxSizeInMB) throws IOException {
         // الحصول على نوع MIME الفعلي
         String mimeType;
         try (var inputStream = file.getInputStream()) { // AutoCloseable
@@ -37,7 +38,7 @@ public class FileValidator {
         }
 
         // التأكد من أن الملف هو صورة ومن الأنواع المسموحة
-        if (!ALLOWED_MIME_TYPES.contains(mimeType)) {
+        if (!ALLOWED_MIME_TYPES.contains(mimeType) || file.getSize() > maxSizeInMB * 1024 * 1024) {
             throw new IOException("THE FILE TYPE ISNT IMAGE " + mimeType);
         }
     }
