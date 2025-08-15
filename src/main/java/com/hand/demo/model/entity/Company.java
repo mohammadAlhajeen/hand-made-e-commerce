@@ -6,6 +6,7 @@ package com.hand.demo.model.entity;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -44,7 +45,7 @@ public class Company extends AppUser {
     @Builder.Default
     private BigDecimal taxRate = new BigDecimal(0);
     @OneToMany(fetch = FetchType.LAZY,mappedBy = "company")
-    private Product product;
+    private List<Product> product;
 
     @PrePersist
     @Override

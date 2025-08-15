@@ -7,6 +7,7 @@ import lombok.Data;
 
 @Data
     public  class AttributeDTO {
+        private Long id;
         private String name;
         private Attribute.AttributeType type;
         private Boolean isRequired;
@@ -14,6 +15,7 @@ import lombok.Data;
 
         @Data
         public static class AttributeValueDTO {
+            private Long id;
             private String value;
             private List<String> imageUrls;
         }

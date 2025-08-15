@@ -27,9 +27,11 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Setter
+@Getter
 @Entity
 @Table(name = "products")
 @SQLDelete(sql = "UPDATE products SET deleted = true WHERE id = ?")
@@ -79,7 +81,7 @@ public class Product {
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "products")
     private List<Cart> carts;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "product_tags", joinColumns = @JoinColumn(name = "product_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private List<Tag> tags;
 
@@ -114,7 +116,7 @@ public class Product {
     // Pre data base
     @PrePersist
     protected void onCreate() {
-        avgRating = new AvgRating(this);
+        avgRating = new AvgRating(this, BigDecimal.ZERO, 0, 0, 0, 0, 0, 0);
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }

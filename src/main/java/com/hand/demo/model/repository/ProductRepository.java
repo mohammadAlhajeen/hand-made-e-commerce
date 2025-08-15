@@ -25,12 +25,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             """)
     List<GetProductCardProjection> findAllActiveProjectedByCompanyId(Long companyId);
 
-    @org.springframework.data.jpa.repository.Query("""
+    @Query("""
                 SELECT p.id AS id, p.name AS name,
                        (
-                           SELECT img.url FROM ProductImage img
-                           WHERE img.product = p AND img.isMain = true
-                       ) AS mainImageUrl,
+                           SELECT img.url
+                           FROM ProductImage img
+                           WHERE img.product = p
+                             AND img.isMain = true
+                           ORDER BY img.id ASC
+                       )
+                       AS mainImageUrl,
                        p.preparationDays AS preparationDays
                 FROM Product p
                 WHERE p.company.id = :companyId
@@ -53,7 +57,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             """)
     GetProductCardProjection findProjectedByName(String name);
 
-        // Ownership checks and scoped fetches
-        java.util.Optional<Product> findByIdAndCompanyId(Long id, Long companyId);
+    // Ownership checks and scoped fetches
+    java.util.Optional<Product> findByIdAndCompanyId(Long id, Long companyId);
+
+    @Query("""
+            SELECT r.id AS id, r.rating AS rating, r.shortComment AS shortComment, r.createdAt AS createdAt,
+                r.product.id AS productId, r.customer.id AS customerId, r.customer.name AS customerName
+            FROM Review r
+            WHERE r.product.id = :productId
+            """)
+    org.springframework.data.domain.Page<GetReviewsProjection> findReviewsByProductId(
+            @Param("productId") Long productId,
+            org.springframework.data.domain.Pageable pageable);
 
 }

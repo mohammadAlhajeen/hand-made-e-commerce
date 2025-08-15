@@ -15,8 +15,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.Data;
-@Data
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "avg_rating")
 public class AvgRating implements Serializable {
@@ -31,16 +37,24 @@ public class AvgRating implements Serializable {
     private long totalRatings;
     private long ratingCount;
     @Column(name="average_rating")
-    private BigDecimal averageRating;
+    private BigDecimal averageRating=BigDecimal.ZERO;
     @Column(name="last_recomputed")
     private Date lastRecomputed;
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(unique = true, name = "product_id", nullable = false)
     @JsonIgnore
     private Product product;
-    public AvgRating(Product product) {
+    public AvgRating(Product product, BigDecimal averageRating, long fiveRating, long fourRating, long threeRating, long twoRating, long oneRating, long totalRatings) {
         this.product = product;
+        this.averageRating = averageRating;
+        this.fiveRating = fiveRating;
+        this.fourRating = fourRating;
+        this.threeRating = threeRating;
+        this.twoRating = twoRating;
+        this.oneRating = oneRating;
+        this.totalRatings = totalRatings;
     }
+
 
 
 }

@@ -41,13 +41,13 @@ public class GlobalExceptionHandler {
         return ApiErrorBuilder.notFound(ex.getMessage(), request.getRequestURI());
     }
 
-    @ExceptionHandler(Exception.class)
+  /*  @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(
             Exception ex,
             HttpServletRequest request) {
-
-        return ApiErrorBuilder.serverError("Something went wrong", request.getRequestURI());
-    }
+TODO 
+       return ApiErrorBuilder.serverError("Something  wrong", request.getRequestURI());
+    }*/
 
     @ExceptionHandler(JwtException.class)
     public ResponseEntity<ErrorResponse> handleJwtException(

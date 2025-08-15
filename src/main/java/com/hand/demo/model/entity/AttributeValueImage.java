@@ -4,6 +4,7 @@
  */
 package com.hand.demo.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -21,6 +22,7 @@ import lombok.Setter;
 public class AttributeValueImage extends ImageUrl {
 
     @ManyToOne
+    @JsonIgnore
     private AttributeValue attributeValue;
 
 }

@@ -2,6 +2,8 @@ package com.hand.demo.model.entity;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -31,15 +33,17 @@ public class Review {
 
     @Column(nullable = false)
     private byte rating=1; 
-    @Column(length = 255)
+    @Column(length = 1000)
     private String shortComment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonIgnore
     private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
+    @JsonIgnore
     private Customer customer;
 
     @Column(name = "created_at")

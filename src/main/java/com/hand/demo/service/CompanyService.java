@@ -2,27 +2,31 @@ package com.hand.demo.service;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import javax.security.auth.login.CredentialException;
 
 import org.apache.tika.utils.StringUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.hand.demo.auth.AuthResponse;
 import com.hand.demo.config.JwtService;
+import com.hand.demo.model.Dtos.AppUserLoginDto;
 import com.hand.demo.model.Dtos.AppUserRegisterDTO;
 import com.hand.demo.model.Dtos.UpdateCompanyDto;
 import com.hand.demo.model.Dtos.product_dtos.CreateProductDto;
+import com.hand.demo.model.Dtos.product_dtos.ProductForCompany;
 import com.hand.demo.model.entity.Address;
 import com.hand.demo.model.entity.Company;
 import com.hand.demo.model.entity.Product;
 import com.hand.demo.model.repository.AddressRepository;
 import com.hand.demo.model.repository.AppUserRepository;
 import com.hand.demo.model.repository.CompanyRepository;
+import com.hand.demo.model.repository.GetReviewsProjection;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +69,7 @@ public class CompanyService extends AppUserService {
         return company;
     }
 
-    public AuthResponse CreateCompany(AppUserRegisterDTO registerDTO, MultipartFile file) throws IOException {
+    public AppUserLoginDto CreateCompany(AppUserRegisterDTO registerDTO, MultipartFile file) throws IOException {
         Company company = saveCompany(registerDTO);
 
         if (file != null) {
@@ -73,9 +77,8 @@ public class CompanyService extends AppUserService {
         }
 
         var jwtToken = jwtService.jwtGenerator(company);
-        return AuthResponse.builder()
-                .token(jwtToken)
-                .build();
+        AppUserLoginDto appUserLoginDto = new AppUserLoginDto(company, jwtToken);
+        return appUserLoginDto;
     }
 
     public Company updateCompanyHelper(UpdateCompanyDto companyDto) throws CredentialException {
@@ -89,6 +92,15 @@ public class CompanyService extends AppUserService {
 
         companyRepository.save(updateCompanyHelper(companyDto));
         return "User Update Successfully";
+    }
+
+    public Company updateCompany(UpdateCompanyDto companyDto, MultipartFile image)
+            throws CredentialException, IOException {
+        Company company = updateCompanyHelper(companyDto);
+        if (image != null) {
+            addCompanyImg(company, image);
+        }
+        return companyRepository.save(company);
     }
 
     public void addCompanyImg(Company company, MultipartFile file) throws IOException {
@@ -110,7 +122,7 @@ public class CompanyService extends AppUserService {
     // ##################################
     // ####### Product Operations #######
     // ##################################
-    public Product createProductDto(CreateProductDto productDto) throws CredentialException {
+    public ProductForCompany createProductDto(CreateProductDto productDto) throws CredentialException {
         UserDetails appUser = super.userAuthorization();
         Company company = companyRepository.findByUsername(appUser.getUsername())
                 .orElseThrow(() -> new CredentialException("Company not found"));
@@ -118,9 +130,10 @@ public class CompanyService extends AppUserService {
     }
 
     public Product getCompanyProduct(Long productId) throws CredentialException {
-        super.userAuthorization();
-
-        return productService.getCompanyProduct(productId);
+    UserDetails appUser = super.userAuthorization();
+        Company company = companyRepository.findByUsername(appUser.getUsername())
+                .orElseThrow(() -> new CredentialException("Company not found"));
+        return productService.getCompanyProductHelper(productId, company.getId());
     }
 
     public java.util.List<com.hand.demo.model.repository.CompanyProductProjection> listMyProducts()
@@ -131,19 +144,40 @@ public class CompanyService extends AppUserService {
         return productService.getCompanyProductsForDisplay(company.getId());
     }
 
-    public Product updateMyProduct(CreateProductDto productDto, Long productId) throws CredentialException {
-        super.userAuthorization();
-        return productService.updateProduct(productDto, productId);
+    public ProductForCompany updateMyProduct(CreateProductDto productDto, Long productId) throws CredentialException {
+          UserDetails appUser = super.userAuthorization();
+        Company company = companyRepository.findByUsername(appUser.getUsername())
+                .orElseThrow(() -> new CredentialException("Company not found"));
+  
+        return productService.updateProduct(productDto, productId,company.getId());
     }
 
     public void activateMyProduct(Long productId, boolean active) throws CredentialException {
-        super.userAuthorization();
-        productService.setActive(productId, active);
+        UserDetails appUser = super.userAuthorization();
+        Company company = companyRepository.findByUsername(appUser.getUsername())
+                .orElseThrow(() -> new CredentialException("Company not found"));
+        productService.setActive(productId, company.getId(), active);
     }
 
-    public void deleteMyProduct(Long productId) throws CredentialException {
-        super.userAuthorization();
-        productService.deleteCompanyProduct(productId);
+    public String deleteMyProduct(Long productId) throws CredentialException {
+        UserDetails appUser = super.userAuthorization();
+        Company company = companyRepository.findByUsername(appUser.getUsername())
+                .orElseThrow(() -> new CredentialException("Company not found"));
+        productService.deleteCompanyProduct(productId, company.getId());
+        return "Product deleted successfully";
+    }
+
+    public List<GetReviewsProjection> getReviewDesRat(Long productId) {
+
+        return productService.getRatings(productId, Sort.by(Sort.Direction.DESC, "rating"));
+    }
+        public List<GetReviewsProjection> getReviewAscRat(Long productId) {
+
+        return productService.getRatings(productId, Sort.by(Sort.Direction.ASC, "rating"));
+    }
+        public List<GetReviewsProjection> getReviewDesCreate(Long productId) {
+
+        return productService.getRatings(productId, Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
 }
