@@ -1,6 +1,6 @@
 package com.hand.demo.model.entity;
 
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -35,10 +35,12 @@ public class Comment {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonBackReference
     private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false) // ممكن يكون AppUser أو Customer حسب عندك
+    @JsonBackReference
     private AppUser user;
 
     @Column(name = "created_at")
@@ -49,6 +51,3 @@ public class Comment {
         createdAt = LocalDateTime.now();
     }
 }
-
-
-    

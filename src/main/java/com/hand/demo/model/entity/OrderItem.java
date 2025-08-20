@@ -1,5 +1,6 @@
 package com.hand.demo.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    // ✅ Snapshot ثابت للمنتج
+
     @Embedded
     private ProductSnapshot productSnapshot;
 
@@ -54,6 +55,8 @@ public class OrderItem {
     private BigDecimal taxRate = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL, orphanRemoval = true)
+      @JsonBackReference
+
     private List<OrderItemAttributeValue> attributeValues = new ArrayList<>();
 
     @Column(name = "total_price", precision = 10, scale = 2)

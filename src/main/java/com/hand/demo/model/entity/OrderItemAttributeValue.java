@@ -1,5 +1,6 @@
 package com.hand.demo.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.math.BigDecimal;
 
 import jakarta.persistence.Column;
@@ -24,6 +25,7 @@ public class OrderItemAttributeValue {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_item_id", nullable = false)
+    @JsonBackReference
     private OrderItem orderItem;
 
     @Column(nullable = false)

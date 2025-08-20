@@ -1,0 +1,18 @@
+app:
+  images:
+    storage-dir: "D:/app/images"   
+    public-base: "/images/"
+    return-absolute: false 
+    base-url: "http://127.0.0.1:8080"
+storage:
+  type: local   # local (افتراضي) أو s3
+  images:
+    public-base: "/images/"
+    storage-dir: "D:/app/uploads/images"   # أو /var/app/uploads/images
+
+  s3:
+    bucket: "your-bucket-name"
+    region: "eu-central-1"
+    prefix: "images/"          # مفتاح داخل البكت
+  cdn:
+    base-url: ""               # مثلاً https://cdn.example.com (اختياري)

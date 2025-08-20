@@ -1,10 +1,12 @@
 package com.hand.demo.model.Dtos.product_dtos;
 
+import com.hand.demo.model.Dtos.GetImageDtoProduct;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.hand.demo.model.Dtos.GetImages;
 import com.hand.demo.model.Dtos.product_dtos.AttributeDTO.AttributeValueDTO;
-import com.hand.demo.model.entity.Product;
+import com.hand.demo.model.entity.PreOrderProduct;
 import com.hand.demo.model.entity.ProductImage;
 
 import lombok.AllArgsConstructor;
@@ -19,51 +21,48 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-
 @Data
-public class ProductForCompany {
+public final class PreOrderProductForCompanyV1 implements ProductForCompanyV1 {
+
     private Long id;
     private String name;
     private String description;
     private BigDecimal price;
-    private Integer quantity;
-    private Integer preparationDays;
     private Boolean isActive;
     private Long companyId;
     private List<Long> categoryIds;
-    private Product.AvailabilityStatus availabilityStatus;
-    private List<ProductImage> images;
+    private List<GetImageDtoProduct> images;
     private List<AttributeDTO> attributes;
     private List<String> tagNames;
 
-
-
+    private BigDecimal prePaidPrice;
+    private Float preparationDays;
 
     // دالة تحويل من Product إلى ProductForCompany
-    public static ProductForCompany fromProduct(Product product) {
-        ProductForCompany dto = new ProductForCompany();
+    public static PreOrderProductForCompanyV1 fromProduct(PreOrderProduct product) {
+        PreOrderProductForCompanyV1 dto = new PreOrderProductForCompanyV1();
         dto.setId(product.getId());
         dto.setName(product.getName());
         dto.setDescription(product.getDescription());
         dto.setPrice(product.getPrice());
-        dto.setQuantity(product.getQuantity());
-        dto.setPreparationDays(product.getPreparationDays());
         dto.setIsActive(product.getIsActive());
         dto.setCompanyId(product.getCompany() != null ? product.getCompany().getId() : null);
-        dto.setAvailabilityStatus(product.getAvailabilityStatus());
-        // التصنيفات
         if (product.getCategories() != null) {
             dto.setCategoryIds(product.getCategories().stream().map(c -> c.getId()).toList());
         }
-        // الصور
+
         if (product.getImages() != null) {
-            dto.setImages(product.getImages());
+            List<GetImageDtoProduct> img = product.getImages()
+                    .stream()
+                    .map(img1 -> new GetImageDtoProduct(img1.getId(), img1.isMain(), img1.getMedia().getAbsoluteUrl(), img1.getSortOrder()))
+                    .toList();
+
+            dto.setImages(img);
         }
-        // التاجات
+
         if (product.getTags() != null) {
             dto.setTagNames(product.getTags().stream().map(t -> t.getName()).toList());
         }
-        // الخصائص
         if (product.getAttributes() != null) {
             dto.setAttributes(product.getAttributes().stream().map(attr -> {
                 AttributeDTO attrDto = new AttributeDTO();
@@ -77,15 +76,20 @@ public class ProductForCompany {
                         valDto.setId(val.getId());
                         valDto.setValue(val.getValue());
                         if (val.getAttributeValueImages() != null) {
-                            valDto.setImageUrls(val.getAttributeValueImages().stream().map(img -> img.getUrl()).toList());
+                            List<GetImages> images = val.getAttributeValueImages().stream()
+                                    .map(img -> new GetImages(img.getId(), img.getUrl()))
+                                    .toList();
+                            valDto.setImage(images);
                         }
+
                         return valDto;
                     }).toList());
                 }
                 return attrDto;
             }).toList());
         }
+        dto.setPrePaidPrice(product.getPrePaidPrice());
+        dto.setPreparationDays(product.getPreparationDays());
         return dto;
     }
 }
-

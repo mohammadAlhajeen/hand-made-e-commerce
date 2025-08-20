@@ -1,5 +1,6 @@
 package com.hand.demo.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +22,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.ToString;
 
 @Data
+@ToString
 @Entity
 @Table(name = "attributes")
 public class Attribute {
@@ -42,12 +45,13 @@ public class Attribute {
     private Boolean isRequired = false;
 
     @OneToMany(mappedBy = "attribute", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<AttributeValue> attributeValues = new ArrayList<>(5);
+     @JsonBackReference
+ private List<AttributeValue> attributeValues = new ArrayList<>(5);
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    @JsonIgnore
-    private Product product;
+      @JsonBackReference
+private Product product;
 
 
     @Column(name = "updated_at")

@@ -4,6 +4,7 @@
  */
 package com.hand.demo.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.Set;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -43,9 +44,10 @@ public class Role implements GrantedAuthority {
 
     @Column
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "roles")
+  @JsonBackReference
     private Set<AppUser> users;
+    
     @Column(nullable = false, name = "role_name")
-
     private String name;
 
     @Override

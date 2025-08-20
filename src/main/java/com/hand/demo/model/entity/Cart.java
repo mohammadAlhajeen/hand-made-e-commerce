@@ -1,5 +1,6 @@
 package com.hand.demo.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ public class Cart {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
+    @JsonBackReference
     private Customer customer;
 
     @ManyToMany  // أو OneToMany حسب حالتك
@@ -38,6 +40,7 @@ public class Cart {
             joinColumns = @JoinColumn(name = "cart_id"),
             inverseJoinColumns = @JoinColumn(name = "product_id")
     )
+    @JsonBackReference
     private List<Product> products = new ArrayList<>(5);
 
     @Column(nullable = false)

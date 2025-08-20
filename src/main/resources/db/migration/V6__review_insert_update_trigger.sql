@@ -27,11 +27,11 @@ DECLARE
   v_sum   BIGINT;
   v_avg   NUMERIC(4,2);
 BEGIN
-  -- ضمن صف avg_rating
-  INSERT INTO avg_rating(product_id) VALUES (v_prod)
+  -- ضمن صف avg_ratings
+  INSERT INTO avg_ratings(product_id) VALUES (v_prod)
   ON CONFLICT (product_id) DO NOTHING;
 
-  UPDATE avg_rating
+  UPDATE avg_ratings
   SET
     one_rating   = one_rating   + CASE WHEN v_rating = 1 THEN 1 ELSE 0 END,
     two_rating   = two_rating   + CASE WHEN v_rating = 2 THEN 1 ELSE 0 END,
@@ -42,13 +42,13 @@ BEGIN
     total_ratings= total_ratings+ v_rating
   WHERE product_id = v_prod;
 
-  -- حدّث المتوسط داخل avg_rating
+  -- حدّث المتوسط داخل avg_ratings
   SELECT rating_count, total_ratings INTO v_count, v_sum
-  FROM avg_rating WHERE product_id = v_prod;
+  FROM avg_ratings WHERE product_id = v_prod;
 
   v_avg := CASE WHEN v_count = 0 THEN 0 ELSE ROUND(v_sum::NUMERIC / v_count, 2) END;
 
-  UPDATE avg_rating
+  UPDATE avg_ratings
   SET average_rating  = v_avg,
       last_recomputed = now()
   WHERE product_id = v_prod
@@ -76,7 +76,7 @@ DECLARE
 BEGIN
   IF v_old IS DISTINCT FROM v_new THEN
     -- أنقص دلو القديم
-    UPDATE avg_rating
+    UPDATE avg_ratings
     SET
       one_rating   = GREATEST(one_rating   - CASE WHEN v_old = 1 THEN 1 ELSE 0 END, 0),
       two_rating   = GREATEST(two_rating   - CASE WHEN v_old = 2 THEN 1 ELSE 0 END, 0),
@@ -87,7 +87,7 @@ BEGIN
     WHERE product_id = v_prod;
 
     -- زد دلو الجديد
-    UPDATE avg_rating
+    UPDATE avg_ratings
     SET
       one_rating   = one_rating   + CASE WHEN v_new = 1 THEN 1 ELSE 0 END,
       two_rating   = two_rating   + CASE WHEN v_new = 2 THEN 1 ELSE 0 END,
@@ -99,11 +99,11 @@ BEGIN
 
     -- أعِد حساب المتوسط
     SELECT rating_count, total_ratings INTO v_count, v_sum
-    FROM avg_rating WHERE product_id = v_prod;
+    FROM avg_ratings WHERE product_id = v_prod;
 
     v_avg := CASE WHEN v_count = 0 THEN 0 ELSE ROUND(v_sum::NUMERIC / v_count, 2) END;
 
-    UPDATE avg_rating
+    UPDATE avg_ratings
     SET average_rating  = v_avg,
         last_recomputed = now()
     WHERE product_id = v_prod
@@ -147,7 +147,7 @@ BEGIN
     RETURN OLD;
   END IF;
 
-  UPDATE avg_rating
+  UPDATE avg_ratings
   SET
     one_rating   = GREATEST(one_rating   - CASE WHEN v_rating = 1 THEN 1 ELSE 0 END, 0),
     two_rating   = GREATEST(two_rating   - CASE WHEN v_rating = 2 THEN 1 ELSE 0 END, 0),
@@ -159,11 +159,11 @@ BEGIN
   WHERE product_id = v_prod;
 
   SELECT rating_count, total_ratings INTO v_count, v_sum
-  FROM avg_rating WHERE product_id = v_prod;
+  FROM avg_ratings WHERE product_id = v_prod;
 
   v_avg := CASE WHEN v_count = 0 THEN 0 ELSE ROUND(v_sum::NUMERIC / v_count, 2) END;
 
-  UPDATE avg_rating
+  UPDATE avg_ratings
   SET average_rating  = v_avg,
       last_recomputed = now()
   WHERE product_id = v_prod

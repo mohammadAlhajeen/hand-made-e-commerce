@@ -16,7 +16,6 @@ public class GetProductDto {
     private String description;
     private Double price;
     private List<ProductImage> productImages;
-    private Integer preparationDays;
     private List<Attribute> attributes;
 
     public GetProductDto(com.hand.demo.model.entity.Product product) {
@@ -24,7 +23,6 @@ public class GetProductDto {
         this.name = product.getName();
         this.description = product.getDescription();
         this.price = product.getPrice() != null ? product.getPrice().doubleValue() : null;
-        this.preparationDays = product.getPreparationDays();
         if (product.getCompany() != null) {
             this.company_id = product.getCompany().getId();
             this.company_name = product.getCompany().getName();

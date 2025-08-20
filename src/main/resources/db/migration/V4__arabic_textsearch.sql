@@ -1,6 +1,15 @@
 -- المتطلبات
 CREATE EXTENSION IF NOT EXISTS unaccent;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE TABLE IF NOT EXISTS product_search (
+  product_id serial PRIMARY KEY,
+  fts_name tsvector,
+  fts_tags tsvector,
+  fts_company tsvector,
+  fts_categories tsvector,
+  fts_description tsvector,
+  fts_all tsvector
+);
 
 -- 1) إنشاء القواميس عند عدم وجودها
 DO $$

@@ -4,6 +4,7 @@
  */
 package com.hand.demo.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
@@ -41,10 +42,12 @@ public class Company extends AppUser {
     @ManyToMany(fetch = FetchType.LAZY)
     @JsonManagedReference
     @JoinTable(name = "company_address", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "address_id"))
+
     private Set<Address> address;
     @Builder.Default
     private BigDecimal taxRate = new BigDecimal(0);
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "company")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "company")
+    @JsonBackReference
     private List<Product> product;
 
     @PrePersist

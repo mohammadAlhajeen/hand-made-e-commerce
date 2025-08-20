@@ -2,6 +2,7 @@ package com.hand.demo.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class AttributeValueImageService {
         return attributeValueImageRepository.findAll();
     }
     
-    public Optional<AttributeValueImage> findById(Long id) {
+    public Optional<AttributeValueImage> findById(UUID id) {
         return attributeValueImageRepository.findById(id);
     }
     
@@ -27,7 +28,7 @@ public class AttributeValueImageService {
         return attributeValueImageRepository.save(attributeValueImage);
     }
     
-    public void deleteById(Long id) {
+    public void deleteById(UUID id) {
         attributeValueImageRepository.deleteById(id);
     }
 }

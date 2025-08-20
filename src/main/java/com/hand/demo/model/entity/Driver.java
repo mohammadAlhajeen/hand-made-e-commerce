@@ -3,6 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.hand.demo.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,12 +18,9 @@ import lombok.Data;
 @Table(name = "drivers")
 public class Driver extends AppUser {
 
-
-   
     @OneToMany(mappedBy = "driver")
+    @JsonBackReference
+
     private List<Order> orders = new ArrayList<>();
 
-
-
 }
-

@@ -14,11 +14,12 @@ import lombok.ToString;
 @Setter
 @ToString
 public class AppUserLoginDto {
+
     private Long id;
     private String name;
     private String phone;
     private String username;
-    private AppUserImage appUserImage;
+    private GetImageDto appUserImage;
     private String token;
 
     public AppUserLoginDto(com.hand.demo.model.entity.AppUser appUser, String token) {
@@ -26,7 +27,9 @@ public class AppUserLoginDto {
         this.name = appUser.getName();
         this.phone = appUser.getPhone();
         this.username = appUser.getUsername();
-        this.appUserImage = appUser.getAppUserImage();
+        this.appUserImage = new GetImageDto(appUser.getAppUserImage().getMediaItem().getId(), appUser.getAppUserImage().getMediaItem().getAbsoluteUrl());
+     
+
         this.token = token;
     }
 }

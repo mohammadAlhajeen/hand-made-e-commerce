@@ -1,6 +1,7 @@
 package com.hand.demo.model.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -39,15 +40,19 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
+      @JsonBackReference
+
     private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
-    private Company company;
+    @JsonBackReference
+  private Company company;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "driver_id")
-    private Driver driver;
+      @JsonBackReference
+private Driver driver;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -57,7 +62,8 @@ public class Order {
     private BigDecimal totalPrice = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> orderItems = new ArrayList<>();
+     @JsonBackReference
+ private List<OrderItem> orderItems = new ArrayList<>();
 
     @Column(name = "deleted")
     private boolean deleted;

@@ -17,7 +17,6 @@ RETURNS TABLE (
   description       text,
   price             numeric,
   "mainImageUrl"    text,
-  "preparationDays" int,
   "averageRating"   numeric
 )
 LANGUAGE sql
@@ -35,12 +34,11 @@ ranks AS (
     p.name,
     p.description,
     p.price,
-    p.preparation_days,
 
     -- الصورة الرئيسية
     (
-      SELECT iu.url
-      FROM image_url iu
+      SELECT iu.absolute_url
+      FROM media_items iu
       JOIN product_images pi ON iu.id = pi.id   -- ابقِها حسب سكيمتك الحالية
       WHERE pi.product_id = p.id
         AND pi.is_main = true
@@ -74,10 +72,9 @@ SELECT
   r.description,
   r.price,
   r.main_image_url   AS "mainImageUrl",
-  r.preparation_days AS "preparationDays",
   COALESCE(mr.average_rating, 0)::numeric(4,2) AS "averageRating"
 FROM ranks r
-LEFT JOIN avg_rating mr ON mr.product_id = r.id
+LEFT JOIN avg_ratings mr ON mr.product_id = r.id
 ORDER BY r.score DESC, r.id
 LIMIT p_limit OFFSET p_offset;
 $$;
@@ -100,7 +97,7 @@ AS $$
   FROM product_tags pt
   JOIN tags t ON t.id = pt.tag_id
   WHERE pt.product_id = p_id
-    AND (t.deleted IS NULL OR t.deleted = false)
+
 $$;
 
 CREATE OR REPLACE FUNCTION get_product_categories_text(p_id BIGINT)

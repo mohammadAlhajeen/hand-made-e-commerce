@@ -14,10 +14,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @org.springframework.data.jpa.repository.Query("""
                 SELECT p.id AS id, p.name AS name, p.description AS description, p.price AS price,
-                       (
-                           SELECT img.url FROM ProductImage img
-                           WHERE img.product = p AND img.isMain = true
-                       ) AS mainImageUrl,
+                                             (
+                            SELECT media.absoluteUrl FROM ProductImage img
+                            LEFT JOIN img.media media
+                            WHERE img.product = p AND img.main = true
+                            ORDER BY img.id ASC
+                       )
+                       AS mainImageUrl,
                        p.preparationDays AS preparationDays,
                        p.averageRating AS averageRating
                 FROM Product p
@@ -27,12 +30,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("""
                 SELECT p.id AS id, p.name AS name,
-                       (
-                           SELECT img.url
-                           FROM ProductImage img
-                           WHERE img.product = p
-                             AND img.isMain = true
-                           ORDER BY img.id ASC
+                                            (
+                            SELECT media.absoluteUrl FROM ProductImage img
+                            LEFT JOIN img.media media
+                            WHERE img.product = p AND img.main = true
+                            ORDER BY img.id ASC
                        )
                        AS mainImageUrl,
                        p.preparationDays AS preparationDays
@@ -47,10 +49,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @org.springframework.data.jpa.repository.Query("""
                 SELECT p.id AS id, p.name AS name, p.description AS description, p.price AS price,
-                    (
-                        SELECT img.url FROM ProductImage img
-                        WHERE img.product = p AND img.isMain = true
-                    ) AS mainImageUrl,
+                                           (
+                            SELECT media.absoluteUrl FROM ProductImage img
+                            LEFT JOIN img.media media
+                            WHERE img.product = p AND img.main = true
+                            ORDER BY img.id ASC
+                       )
+                       AS mainImageUrl,
                     p.preparationDays AS preparationDays
                 FROM Product p
                 WHERE p.name = :name
@@ -58,7 +63,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     GetProductCardProjection findProjectedByName(String name);
 
     // Ownership checks and scoped fetches
-    java.util.Optional<Product> findByIdAndCompanyId(Long id, Long companyId);
+    java.util.Optional<? extends Product> findByIdAndCompanyId(Long id, Long companyId);
+
 
     @Query("""
             SELECT r.id AS id, r.rating AS rating, r.shortComment AS shortComment, r.createdAt AS createdAt,
@@ -69,5 +75,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     org.springframework.data.domain.Page<GetReviewsProjection> findReviewsByProductId(
             @Param("productId") Long productId,
             org.springframework.data.domain.Pageable pageable);
+
+  // Find product by ID and active status
+  java.util.Optional<? extends Product> findByIdAndIsActive(Long productId, Boolean isActive);
+  
+  // Convenience method for finding active products only
+  default java.util.Optional<? extends Product> findByIdAndActive(Long productId) {
+      return findByIdAndIsActive(productId, true);
+  }
 
 }

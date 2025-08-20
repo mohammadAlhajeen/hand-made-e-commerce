@@ -1,5 +1,6 @@
 package com.hand.demo.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -19,16 +20,19 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "avg_rating")
+@Table(name = "avg_ratings")
 public class AvgRating implements Serializable {
+
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private long fiveRating;
     private long fourRating;
     private long threeRating;
@@ -36,14 +40,15 @@ public class AvgRating implements Serializable {
     private long oneRating;
     private long totalRatings;
     private long ratingCount;
-    @Column(name="average_rating")
-    private BigDecimal averageRating=BigDecimal.ZERO;
-    @Column(name="last_recomputed")
+    @Column(name = "average_rating")
+    private BigDecimal averageRating = BigDecimal.ZERO;
+    @Column(name = "last_recomputed")
     private Date lastRecomputed;
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(unique = true, name = "product_id", nullable = false)
-    @JsonIgnore
+    @JsonBackReference
     private Product product;
+
     public AvgRating(Product product, BigDecimal averageRating, long fiveRating, long fourRating, long threeRating, long twoRating, long oneRating, long totalRatings) {
         this.product = product;
         this.averageRating = averageRating;
@@ -54,7 +59,5 @@ public class AvgRating implements Serializable {
         this.oneRating = oneRating;
         this.totalRatings = totalRatings;
     }
-
-
 
 }

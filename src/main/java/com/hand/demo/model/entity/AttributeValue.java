@@ -1,8 +1,10 @@
 package com.hand.demo.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.CascadeType;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,14 +19,17 @@ import lombok.Data;
 @Data
 @Table(name = "attribute_values")
 public class AttributeValue {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String value;
-    @OneToMany(mappedBy ="attributeValue")
-    private List <AttributeValueImage> attributeValueImages;
+    @OneToMany(mappedBy = "attributeValue", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
+    private List<AttributeValueImage> attributeValueImages;
     @ManyToOne
-    @JsonIgnore
+
+    @JsonBackReference
     private Attribute attribute;
 
 }

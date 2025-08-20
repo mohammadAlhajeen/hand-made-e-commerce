@@ -1,5 +1,6 @@
 package com.hand.demo.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,8 @@ import lombok.Data;
 @Entity
 @Table(name = "customers")
 public class Customer extends AppUser {
+
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    @JsonBackReference
     private List<Order> orders = new ArrayList<>();
 }

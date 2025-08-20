@@ -4,6 +4,7 @@
  */
 package com.hand.demo.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
@@ -66,24 +67,27 @@ public class AppUser implements UserDetails {
     private String password;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_In")
-    private Date createdIn = new Date();
+    @Column(name = "created_at")
+    private Date createdAt = new Date();
     @Column(nullable = false)
     private String name;
 
     private String phone;
 
     @OneToOne( fetch = FetchType.LAZY)
-    private AppUserImage appUserImage;
+      @JsonBackReference
+private AppUserImage appUserImage;
 
     @Column(nullable = false)
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "app_user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private Set<Role> roles;
+     @JsonBackReference
+ private Set<Role> roles;
     @Column(nullable = false)
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "app_user_address", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "address_id"))
-    private Set<Address> address;
+      @JsonBackReference
+private Set<Address> address;
 
     private boolean deleted = false;
 
@@ -102,7 +106,7 @@ public class AppUser implements UserDetails {
 
     @PrePersist
     public void prePersist() {
-        this.createdIn = new Date();
+        this.createdAt = new Date();
         this.deleted = false;
     }
 

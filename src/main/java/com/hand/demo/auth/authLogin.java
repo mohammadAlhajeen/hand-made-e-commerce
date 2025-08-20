@@ -18,14 +18,14 @@ import com.hand.demo.model.Dtos.LogInRequest;
  * @author Mohammad
  */
 @Service
-public class authLogin {
+public class AuthLogin {
 
         @Autowired
         private JwtService jwtService;
         @Autowired
         private AuthenticationManager authenticationManager;
 
-        public AuthResponse LogInAppUser(LogInRequest logInRequest) {
+        public AuthResponse loginAppUser(LogInRequest logInRequest) {
                 Object userObject = authenticationManager.authenticate(
                                 new UsernamePasswordAuthenticationToken(
                                                 logInRequest.getUsername(), logInRequest.getPassword()))

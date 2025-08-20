@@ -41,31 +41,25 @@ public class TagService {
         return tagRepository.findById(id);
     }
 
-
     @Transactional
     public List<Tag> getOrCreateTags(List<String> tagNames) {
         if (tagNames == null || tagNames.isEmpty()) {
             return List.of();
         }
-
         List<String> names = tagNames.stream()
                 .filter(Objects::nonNull)
                 .map(s -> s.trim().toLowerCase())
                 .filter(s -> !s.isEmpty())
                 .distinct()
                 .toList();
-
         if (names.isEmpty())
             return List.of();
-
-
-    jdbc.batchUpdate(
+        jdbc.batchUpdate(
                 "INSERT INTO tags(name) VALUES (?) ON CONFLICT (name) DO NOTHING",
                 names,
                 100,
                 (ps, name) -> ps.setString(1, name));
-
-    return tagRepository.findAllByNameIn(names);
+        return tagRepository.findAllByNameIn(names);
     }
 
 }

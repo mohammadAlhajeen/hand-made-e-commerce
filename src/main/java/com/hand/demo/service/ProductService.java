@@ -10,16 +10,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.hand.demo.model.Dtos.GetProductDto;
 import com.hand.demo.model.Dtos.RatingDistributionDto;
-import com.hand.demo.model.Dtos.product_dtos.CreateProductDto;
-import com.hand.demo.model.Dtos.product_dtos.ProductForCompany;
-import com.hand.demo.model.entity.Category;
+import com.hand.demo.model.Dtos.product_dtos.InStockProductForCompanyV1;
+import com.hand.demo.model.Dtos.product_dtos.PreOrderProductForCompanyV1;
+import com.hand.demo.model.Dtos.product_dtos.ProductForCompanyV1;
 import com.hand.demo.model.entity.Company;
+import com.hand.demo.model.entity.InStockProduct;
+import com.hand.demo.model.entity.PreOrderProduct;
 import com.hand.demo.model.entity.Product;
-import com.hand.demo.model.entity.ProductImage;
-import com.hand.demo.model.entity.Tag;
-import com.hand.demo.model.repository.CategoryRepository;
 import com.hand.demo.model.repository.CompanyProductProjection;
 import com.hand.demo.model.repository.GetProductCardProjection;
 import com.hand.demo.model.repository.GetReviewsProjection;
@@ -32,68 +30,29 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class ProductService {
 
-    private final TagService tagService;
-
     private final ProductRepository productRepo;
-    private final CategoryRepository categoryRepo;
-    private boolean main = false;
-
-    // ##############################
-    // ######## Create Product ######
-    // ##############################
-    @Transactional
-    public ProductForCompany createProduct(CreateProductDto request, Company company) {
-        Product product = request.DtoToProduct(request);
-        product.setCompany(company);
-
-        checkMainImage(request, product);
-
-        if (request.getCategoryIds() != null) {
-            List<Category> categories = categoryRepo.findAllById(
-                    request.getCategoryIds());
-            product.setCategories(categories);
-        }
-
-        List<Tag> tags = tagService.getOrCreateTags(request.getTagNames());
-        product.setTags(tags);
-        product.setCompany(company);
-        return ProductForCompany.fromProduct(productRepo.save(product));
-    }
-
-    private void checkMainImage(CreateProductDto dto, Product product) {
-        if (dto.getImages() != null) {
-            List<ProductImage> newImages = new java.util.ArrayList<>();
-            boolean mainPicked = false;
-            for (CreateProductDto.ProductImageDTO imgDto : dto.getImages()) {
-                boolean isMain = imgDto.isMain() && !mainPicked;
-                if (isMain) {
-                    mainPicked = true;
-                }
-                newImages.add(new ProductImage(imgDto.getUrl(), isMain, product));
-            }
-            // ensure single main
-            if (!mainPicked && !newImages.isEmpty()) {
-                newImages.get(0).setMain(true);
-            }
-            if (product.getImages() != null) {
-                product.getImages().clear();
-
-                product.getImages().addAll(newImages);
-                return;
-            }
-            product.setImages(newImages);
-
-        }
-    }
 
     // ##############################
     // ######### Get Product ########
     // ##############################
-    public ProductForCompany getProduct(Long productId) {
-
-        Product product = productRepo.findById(productId)
+    public ProductForCompanyV1 getProduct(Long productId) {
+        var product = productRepo.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
-        return ProductForCompany.fromProduct(product);
+        return switch (product) {
+            case InStockProduct p -> InStockProductForCompanyV1.fromProduct(p);
+            case PreOrderProduct p -> PreOrderProductForCompanyV1.fromProduct(p);
+            default -> throw new IllegalArgumentException("Unknown product type: " + product.getClass());
+        };
+    }
+
+    public ProductForCompanyV1 getProductForCustomer(Long productId) {
+        var product = productRepo.findByIdAndIsActive(productId, true)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found"));
+        return switch (product) {
+            case InStockProduct p -> InStockProductForCompanyV1.fromProduct(p);
+            case PreOrderProduct p -> PreOrderProductForCompanyV1.fromProduct(p);
+            default -> throw new IllegalArgumentException("Unknown product type: " + product.getClass());
+        };
     }
 
     public Product getCompanyProductHelper(Long productId, Long companyId) {
@@ -103,10 +62,14 @@ public class ProductService {
     }
 
     // Ownership-scoped fetch
-    public ProductForCompany getCompanyProduct(Long productId, Long companyId) {
-        Product product = productRepo.findByIdAndCompanyId(productId, companyId)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found with ID: " + productId));
-        return ProductForCompany.fromProduct(product);
+    public ProductForCompanyV1 getCompanyProduct(Long productId, Long companyId) {
+        var product = productRepo.findByIdAndCompanyId(productId, companyId)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found"));
+        return switch (product) {
+            case InStockProduct p -> InStockProductForCompanyV1.fromProduct(p);
+            case PreOrderProduct p -> PreOrderProductForCompanyV1.fromProduct(p);
+            default -> throw new IllegalArgumentException("Unknown product type: " + product.getClass());
+        };
     }
 
     // Activate/deactivate
@@ -124,60 +87,6 @@ public class ProductService {
         productRepo.delete(p);
     }
 
-    @Transactional
-    public ProductForCompany updateProduct(CreateProductDto dto, Long productId, Long companyId) {
-        if (dto == null) {
-            throw new IllegalArgumentException("update dto must not be null");
-        }
-        Product p = getCompanyProductHelper(productId, companyId);
-
-        // Scalars: update only when provided (null or blank => do not change)
-        if (dto.getName() != null && !dto.getName().isBlank()) {
-            p.setName(dto.getName());
-        }
-        if (dto.getDescription() != null && !dto.getDescription().isBlank()) {
-            p.setDescription(dto.getDescription());
-        }
-        if (dto.getPrice() != null) {
-            p.setPrice(dto.getPrice());
-        }
-        if (dto.getQuantity() != null) {
-            p.setQuantity(dto.getQuantity());
-        }
-        if (dto.getPreparationDays() != null) {
-            p.setPreparationDays(dto.getPreparationDays());
-        }
-        if (dto.getIsActive() != null) {
-            p.setIsActive(dto.getIsActive());
-        }
-        if (dto.getAvailabilityStatus() != null) {
-            p.setAvailabilityStatus(dto.getAvailabilityStatus());
-        }
-
-        // Relations: categories
-        if (dto.getCategoryIds() != null) {
-            List<Category> categories = categoryRepo.findAllById(dto.getCategoryIds());
-            p.setCategories(categories);
-        }
-
-        // Tags: create or fetch only when provided
-        if (dto.getTagNames() != null) {
-            List<Tag> tags = tagService.getOrCreateTags(dto.getTagNames());
-            p.setTags(tags);
-        }
-
-        // Images: replace only when a non-null list provided
-        checkMainImage(dto, p);
-
-        return ProductForCompany.fromProduct(productRepo.save(p));
-    }
-
-    public GetProductDto getProductDtoById(Long id) {
-        Product product = productRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found with ID: " + id));
-        return new GetProductDto(product);
-    }
-
     public List<com.hand.demo.model.repository.GetProductCardProjection> getProductCardLists(Company company) {
 
         List<com.hand.demo.model.repository.GetProductCardProjection> productCardDto = productRepo
@@ -188,13 +97,14 @@ public class ProductService {
 
     // Get company's products for company dashboard/display by companyId
     public List<CompanyProductProjection> getCompanyProductsForDisplay(Long companyId) {
+        System.out.println(companyId);
         return productRepo.retrieveProductsForCompany(companyId);
     }
 
     // Search products cards by product name (native search function)
     public List<GetProductCardProjection> searchProductCards(String productName) {
-        if (productName == null) {
-            productName = "";
+        if (productName == null || productName.isBlank()) {
+            throw new IllegalArgumentException("productName must not be blank");
         }
         return productRepo.searchGetProductCardProjections(productName);
     }
