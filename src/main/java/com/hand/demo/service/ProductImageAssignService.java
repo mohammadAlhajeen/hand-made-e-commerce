@@ -6,13 +6,12 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.hand.demo.model.Dtos.CreateImageDto;
+import com.hand.demo.model.Dtos.image_dtos.CreateImageDto;
 import com.hand.demo.model.entity.MediaItem;
 import com.hand.demo.model.entity.Product;
 import com.hand.demo.model.entity.ProductImage;
-import com.hand.demo.model.repository.AttributeValueImageRepository;
-import com.hand.demo.model.repository.MediaRepository;
-import com.hand.demo.model.repository.ProductImageRepository;
+import com.hand.demo.repository.MediaRepository;
+import com.hand.demo.repository.ProductImageRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,7 +21,6 @@ public class ProductImageAssignService {
 
     private final ProductImageRepository productImageRepo;
     private final MediaRepository mediaRepository;
-    private final AttributeValueImageRepository attValImgRepo;
 
     private void checkMainImage(List<CreateImageDto> dto, Product product) {
         if (dto != null) {
@@ -67,7 +65,8 @@ public class ProductImageAssignService {
     }
 
     @Transactional
-    public void assignImagesToProduct(Product product, List<CreateImageDto> imageDtos) {
+    public void 
+    assignImagesToProduct(Product product, List<CreateImageDto> imageDtos) {
         // التأكد من أن المنتج له ID (تم حفظه مسبقاً)
         if (product.getId() == null) {
             throw new IllegalStateException("Product must be saved before assigning images");

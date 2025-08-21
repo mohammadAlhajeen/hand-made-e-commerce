@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hand.demo.model.entity.Cart;
-import com.hand.demo.model.repository.CartRepository;
+import com.hand.demo.repository.CartRepository;
 
 @Service
 public class CartService {

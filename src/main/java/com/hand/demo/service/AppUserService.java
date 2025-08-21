@@ -17,9 +17,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.hand.demo.model.Dtos.AppUserDto;
-import com.hand.demo.model.repository.AppUserProjection;
-import com.hand.demo.model.repository.AppUserRepository;
+import com.hand.demo.model.Dtos.appuser_dtos.AppUserDto;
+import com.hand.demo.repository.AppUserProjection;
+import com.hand.demo.repository.AppUserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 

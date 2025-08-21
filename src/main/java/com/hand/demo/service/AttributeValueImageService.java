@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hand.demo.model.entity.AttributeValueImage;
-import com.hand.demo.model.repository.AttributeValueImageRepository;
+import com.hand.demo.repository.AttributeValueImageRepository;
 
 @Service
 public class AttributeValueImageService {

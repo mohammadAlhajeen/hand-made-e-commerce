@@ -1,13 +1,13 @@
 package com.hand.demo.model.Dtos.product_dtos;
 
-import com.hand.demo.model.Dtos.GetImageDtoProduct;
 import java.math.BigDecimal;
 import java.util.List;
 
-import com.hand.demo.model.Dtos.GetImages;
+import com.hand.demo.model.Dtos.image_dtos.GetImageDtoProduct;
+import com.hand.demo.model.Dtos.image_dtos.GetImages;
 import com.hand.demo.model.Dtos.product_dtos.AttributeDTO.AttributeValueDTO;
+import com.hand.demo.model.entity.Category;
 import com.hand.demo.model.entity.PreOrderProduct;
-import com.hand.demo.model.entity.ProductImage;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,7 +22,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @Data
-public final class PreOrderProductForCompanyV1 implements ProductForCompanyV1 {
+public final class PreOrderProductForCompanyV1 implements ProductDTOs {
 
     private Long id;
     private String name;
@@ -30,7 +30,7 @@ public final class PreOrderProductForCompanyV1 implements ProductForCompanyV1 {
     private BigDecimal price;
     private Boolean isActive;
     private Long companyId;
-    private List<Long> categoryIds;
+    private List<Category> categories;
     private List<GetImageDtoProduct> images;
     private List<AttributeDTO> attributes;
     private List<String> tagNames;
@@ -48,7 +48,7 @@ public final class PreOrderProductForCompanyV1 implements ProductForCompanyV1 {
         dto.setIsActive(product.getIsActive());
         dto.setCompanyId(product.getCompany() != null ? product.getCompany().getId() : null);
         if (product.getCategories() != null) {
-            dto.setCategoryIds(product.getCategories().stream().map(c -> c.getId()).toList());
+            dto.setCategories(product.getCategories());
         }
 
         if (product.getImages() != null) {

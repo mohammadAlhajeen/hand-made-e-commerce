@@ -10,18 +10,20 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.hand.demo.model.Dtos.RatingDistributionDto;
+import com.hand.demo.model.Dtos.appuser_dtos.RatingDistributionDto;
+import com.hand.demo.model.Dtos.product_dtos.GetInStockProductDto;
+import com.hand.demo.model.Dtos.product_dtos.GetPreOrderProductDto;
 import com.hand.demo.model.Dtos.product_dtos.InStockProductForCompanyV1;
 import com.hand.demo.model.Dtos.product_dtos.PreOrderProductForCompanyV1;
-import com.hand.demo.model.Dtos.product_dtos.ProductForCompanyV1;
+import com.hand.demo.model.Dtos.product_dtos.ProductDTOs;
 import com.hand.demo.model.entity.Company;
 import com.hand.demo.model.entity.InStockProduct;
 import com.hand.demo.model.entity.PreOrderProduct;
 import com.hand.demo.model.entity.Product;
-import com.hand.demo.model.repository.CompanyProductProjection;
-import com.hand.demo.model.repository.GetProductCardProjection;
-import com.hand.demo.model.repository.GetReviewsProjection;
-import com.hand.demo.model.repository.ProductRepository;
+import com.hand.demo.repository.CompanyProductProjection;
+import com.hand.demo.repository.GetProductCardProjection;
+import com.hand.demo.repository.GetReviewsProjection;
+import com.hand.demo.repository.ProductRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +37,7 @@ public class ProductService {
     // ##############################
     // ######### Get Product ########
     // ##############################
-    public ProductForCompanyV1 getProduct(Long productId) {
+    public ProductDTOs getProduct(Long productId) {
         var product = productRepo.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
         return switch (product) {
@@ -45,12 +47,12 @@ public class ProductService {
         };
     }
 
-    public ProductForCompanyV1 getProductForCustomer(Long productId) {
+    public ProductDTOs getProductForCustomer(Long productId) {
         var product = productRepo.findByIdAndIsActive(productId, true)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
         return switch (product) {
-            case InStockProduct p -> InStockProductForCompanyV1.fromProduct(p);
-            case PreOrderProduct p -> PreOrderProductForCompanyV1.fromProduct(p);
+            case InStockProduct p -> GetInStockProductDto.fromProduct(p);
+            case PreOrderProduct p -> GetPreOrderProductDto.fromProduct(p);
             default -> throw new IllegalArgumentException("Unknown product type: " + product.getClass());
         };
     }
@@ -62,7 +64,7 @@ public class ProductService {
     }
 
     // Ownership-scoped fetch
-    public ProductForCompanyV1 getCompanyProduct(Long productId, Long companyId) {
+    public ProductDTOs getCompanyProduct(Long productId, Long companyId) {
         var product = productRepo.findByIdAndCompanyId(productId, companyId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
         return switch (product) {
@@ -87,9 +89,9 @@ public class ProductService {
         productRepo.delete(p);
     }
 
-    public List<com.hand.demo.model.repository.GetProductCardProjection> getProductCardLists(Company company) {
+    public List<com.hand.demo.repository.GetProductCardProjection> getProductCardLists(Company company) {
 
-        List<com.hand.demo.model.repository.GetProductCardProjection> productCardDto = productRepo
+        List<com.hand.demo.repository.GetProductCardProjection> productCardDto = productRepo
                 .findAllActiveProjectedByCompanyId(company.getId());
         return productCardDto;
 
@@ -144,6 +146,51 @@ public class ProductService {
         Page<GetReviewsProjection> reviews = productRepo.findReviewsByProductId(productId, pageable);
 
         return reviews.isEmpty() ? null : reviews.getContent();
+    }
+
+    // ##############################
+    // ######### Public APIs ########
+    // ##############################
+
+    /**
+     * Get all active products with pagination and filtering
+     */
+    public Page<GetProductCardProjection> getPublicProducts(int page, int size, String category, String tag,
+            String search) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        // TODO: سيتم تطبيق الفلترة بعد إضافة الـ repositories المناسبة
+        // هذا مجرد بداية أساسية
+        return productRepo.findAllActiveProducts(pageable);
+    }
+
+    /**
+     * Get public product details
+     */
+    public ProductDTOs getPublicProduct(Long productId) {
+        return getProductForCustomer(productId); // استخدام الوظيفة الموجودة
+    }
+
+    /**
+     * Search products by name
+     */
+    public List<GetProductCardProjection> searchProducts(String query) {
+        return searchProductCards(query); // استخدام الوظيفة الموجودة
+    }
+
+    /**
+     * Get featured products (أحدث 10 منتجات نشطة)
+     */
+    public List<GetProductCardProjection> getFeaturedProducts() {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+        return productRepo.findAllActiveProducts(pageable).getContent();
+    }
+
+    /**
+     * Get products by category
+     */
+    public List<GetProductCardProjection> getProductsByCategory(Long categoryId) {
+        return productRepo.findActiveByCategoryId(categoryId);
     }
 
 }

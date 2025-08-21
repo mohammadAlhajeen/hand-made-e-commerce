@@ -10,9 +10,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class UpdateInStockProductDto extends UpdateProductDtoV1 {
 
-    @Min(value = 0, message = "Stock quantity must be >= 0")
-    private Integer stockQuantity;
-
     private Boolean returnable;
 
     @Min(value = 0, message = "Return days must be >= 0")
@@ -31,17 +28,9 @@ public class UpdateInStockProductDto extends UpdateProductDtoV1 {
         if (this.getPrice() != null) {
             existingProduct.setPrice(this.getPrice());
         }
-        if (this.getQuantity() != null) {
-            existingProduct.setQuantity(this.getQuantity());
-        }
+
         if (this.getIsActive() != null) {
             existingProduct.setIsActive(this.getIsActive());
-        }
-
-
-        // Update InStock specific fields
-        if (this.getStockQuantity() != null) {
-            existingProduct.setQuantity(this.getStockQuantity()); // Use quantity field
         }
         if (this.getReturnable() != null) {
             existingProduct.setReturnable(this.getReturnable());

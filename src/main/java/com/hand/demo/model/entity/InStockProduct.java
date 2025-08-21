@@ -1,5 +1,7 @@
 package com.hand.demo.model.entity;
 
+import java.beans.Transient;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -18,9 +20,10 @@ import lombok.Setter;
 @DiscriminatorValue("STOCK")
 @PrimaryKeyJoinColumn(name = "id") // نفس PK تبع products
 public class InStockProduct extends Product {
-
     @Column(nullable = false)
-    private Integer quantity = 0;
+    private Integer totalQuantity = 0;
+
+    private Integer quantityCommitted = 0;
 
     // سياسة الإرجاع للمخزون
     @Column(name = "returnable", nullable = false)
@@ -39,6 +42,14 @@ public class InStockProduct extends Product {
                 : (returnDays == null);
     }
 
+    @Transient
+    public int getQuantityAvailable() {
+        int total = totalQuantity != null ? totalQuantity : 0;
+        int committed = quantityCommitted != null ? quantityCommitted : 0;
+        int raw = total - committed;
+        return allowBackorder ? Math.max(raw, 0) : raw;
+    }
+
     @PrePersist
     @PreUpdate
     private void normalize() {
@@ -47,8 +58,6 @@ public class InStockProduct extends Product {
             returnDays = null;
         }
         // احذف القيم السالبة بالخطأ
-        if (quantity == null || quantity < 0) {
-            quantity = 0;
-        }
+    
     }
 }

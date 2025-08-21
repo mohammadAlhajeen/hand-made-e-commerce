@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hand.demo.model.entity.MediaItem;
-import com.hand.demo.model.repository.MediaRepository;
+import com.hand.demo.repository.MediaRepository;
 import com.hand.demo.storage.BlobStorage;
 import com.hand.demo.util.FileValidator;
 

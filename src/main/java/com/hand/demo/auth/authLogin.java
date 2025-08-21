@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import com.hand.demo.config.JwtService;
-import com.hand.demo.model.Dtos.LogInRequest;
+import com.hand.demo.model.Dtos.appuser_dtos.LogInRequest;
 
 /**
  *

@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.hand.demo.model.entity.MediaItem;
-import com.hand.demo.model.repository.MediaRepository;
+import com.hand.demo.repository.MediaRepository;
 
 import lombok.RequiredArgsConstructor;
 

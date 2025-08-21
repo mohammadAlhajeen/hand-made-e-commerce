@@ -18,9 +18,8 @@ import com.hand.demo.model.entity.Company;
 import com.hand.demo.model.entity.InStockProduct;
 import com.hand.demo.model.entity.Product;
 import com.hand.demo.model.entity.Tag;
-import com.hand.demo.model.repository.AttributeRepository;
-import com.hand.demo.model.repository.CategoryRepository;
-import com.hand.demo.model.repository.InStockProductRepository;
+import com.hand.demo.repository.CategoryRepository;
+import com.hand.demo.repository.InStockProductRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,6 @@ public class InStockProductService {
     private final InStockProductRepository productRepo;
     private final CategoryRepository categoryRepo;
     private final ProductImageAssignService mediaService;
-    private final AttributeRepository attributeRepository;
 
     // ##############################
     // ######## Create Product ######
@@ -75,7 +73,7 @@ public class InStockProductService {
     }
 
     // ##############################
-    // ######### Update Product ########
+    // ######### Update Product #####
     // ##############################
     public InStockProduct getCompanyProductHelper(Long productId, Long companyId) {
         InStockProduct product = productRepo.findByIdAndCompanyId(productId, companyId)
@@ -125,6 +123,9 @@ public class InStockProductService {
         return InStockProductForCompanyV1.fromProduct(saved);
     }
 
+    // ###########################
+    // #### Attributes Helper ####
+    // ###########################
     public List<Attribute> toAttributes(List<CreateAttributeDTO> request, Product product) {
         if (request == null) {
             return new ArrayList<>();
@@ -174,6 +175,202 @@ public class InStockProductService {
         val.setAttributeValueImages(images);
         System.out.println(val.getAttributeValueImages().toString());
         return val;
+    }
+
+    // #########################
+    // ##### Stock Updater #####
+    // #########################
+    public record InventorySnapshot(int total, int committed, int available, int backordered) {
+    }
+
+    // ===== Helpers =====
+    private static int nz(Integer v) {
+        return v != null ? v : 0;
+    }
+
+    private static int availableOf(int total, int committed, boolean allowBackorder) {
+        int raw = total - committed;
+        return allowBackorder ? Math.max(raw, 0) : raw; // مع OFF نضمن بعقلنا committed<=total
+    }
+
+    private static int backorderedOf(int total, int committed) {
+        return Math.max(committed - total, 0);
+    }
+
+    // ===== RESTOCK: زيادة الإجمالي (دخول بضاعة) =====
+    @Transactional
+    public InventorySnapshot restock(Long productId, Long companyId, int qty) {
+        if (qty <= 0)
+            throw new IllegalArgumentException("qty must be > 0");
+
+        var inv = productRepo.lockByIdAndCompanyId(productId, companyId)
+                .orElseThrow(() -> new EntityNotFoundException("Inventory not found"));
+
+        int total = nz(inv.getTotalQuantity()) + qty;
+        int committed = nz(inv.getQuantityCommitted());
+        boolean back = Boolean.TRUE.equals(inv.isAllowBackorder());
+
+        inv.setTotalQuantity(total);
+        productRepo.save(inv);
+
+        return new InventorySnapshot(total, committed,
+                availableOf(total, committed, back),
+                backorderedOf(total, committed));
+    }
+
+    // ===== RESERVE: حجز للطلب الأونلاين =====
+    @Transactional
+    public InventorySnapshot reserve(Long productId, Long companyId, int qty) {
+        if (qty <= 0)
+            throw new IllegalArgumentException("qty must be > 0");
+
+        var inv = productRepo.lockByIdAndCompanyId(productId, companyId)
+                .orElseThrow(() -> new EntityNotFoundException("Inventory not found"));
+
+        // امنع الطلبات الجديدة إذا المنتج غير فعّال
+        if (Boolean.FALSE.equals(inv.getIsActive())) {
+            throw new IllegalStateException("Product is inactive; ordering is paused.");
+        }
+
+        boolean back = Boolean.TRUE.equals(inv.isAllowBackorder());
+        int total = inv.getTotalQuantity() == null ? 0 : inv.getTotalQuantity();
+        int committed = inv.getQuantityCommitted() == null ? 0 : inv.getQuantityCommitted();
+        int available = Math.max(total - committed, 0);
+
+        if (!back && qty > available)
+            throw new IllegalStateException("Not enough stock to reserve");
+
+        inv.setQuantityCommitted(committed + qty);
+        committed += qty;
+        productRepo.save(inv);
+
+        int shownAvailable = back ? Math.max(total - committed, 0) : (total - committed);
+        int backordered = Math.max(committed - total, 0);
+        return new InventorySnapshot(total, committed, shownAvailable, backordered);
+    }
+
+    // ===== RELEASE: فكّ الحجز =====
+    @Transactional
+    public InventorySnapshot release(Long productId, Long companyId, int qty) {
+        if (qty <= 0)
+            throw new IllegalArgumentException("qty must be > 0");
+
+        var inv = productRepo.lockByIdAndCompanyId(productId, companyId)
+                .orElseThrow(() -> new EntityNotFoundException("Inventory not found"));
+
+        int total = nz(inv.getTotalQuantity());
+        int committed = nz(inv.getQuantityCommitted());
+        boolean back = Boolean.TRUE.equals(inv.isAllowBackorder());
+
+        if (qty > committed)
+            throw new IllegalStateException("Release exceeds committed reservations");
+
+        inv.setQuantityCommitted(committed - qty);
+        committed -= qty;
+
+        productRepo.save(inv);
+        return new InventorySnapshot(total, committed,
+                availableOf(total, committed, back),
+                backorderedOf(total, committed));
+    }
+
+    // ===== SHIP: شحن الطلب (يُنقص من الإجمالي ومن المحجوز) =====
+    @Transactional
+    public InventorySnapshot ship(Long productId, Long companyId, int qty) {
+        if (qty <= 0)
+            throw new IllegalArgumentException("qty must be > 0");
+
+        var inv = productRepo.lockByIdAndCompanyId(productId, companyId)
+                .orElseThrow(() -> new EntityNotFoundException("Inventory not found"));
+
+        int total = nz(inv.getTotalQuantity());
+        int committed = nz(inv.getQuantityCommitted());
+        boolean back = Boolean.TRUE.equals(inv.isAllowBackorder());
+
+        // لازم يكون في بضاعة فعلية على الرف + تكون محجوزة
+        if (qty > committed)
+            throw new IllegalStateException("Cannot ship more than committed");
+        if (qty > total)
+            throw new IllegalStateException("Cannot ship more than on-hand total");
+
+        inv.setQuantityCommitted(committed - qty);
+        inv.setTotalQuantity(total - qty);
+
+        total -= qty;
+        committed -= qty;
+
+        productRepo.save(inv);
+        return new InventorySnapshot(total, committed,
+                availableOf(total, committed, back),
+                backorderedOf(total, committed));
+    }
+
+    // ===== SET TOTAL: ضبط الإجمالي مباشرة =====
+    @Transactional
+    public InventorySnapshot setTotal(Long productId, Long companyId, int newTotal) {
+        if (newTotal < 0)
+            throw new IllegalArgumentException("newTotal must be >= 0");
+
+        var inv = productRepo.lockByIdAndCompanyId(productId, companyId)
+                .orElseThrow(() -> new EntityNotFoundException("Inventory not found"));
+
+        int committed = nz(inv.getQuantityCommitted());
+        boolean back = Boolean.TRUE.equals(inv.isAllowBackorder());
+
+        if (!back && newTotal < committed) {
+            throw new IllegalStateException("newTotal cannot be less than committed when backorders are disabled");
+        }
+
+        inv.setTotalQuantity(newTotal);
+        productRepo.save(inv);
+
+        return new InventorySnapshot(newTotal, committed,
+                availableOf(newTotal, committed, back),
+                backorderedOf(newTotal, committed));
+    }
+
+    // (اختياري) تبديل وضع backorder بأمان
+    @Transactional
+    public ToggleBackorderResult setAllowBackorder(Long productId, Long companyId,
+            boolean allow,
+            boolean autoDeactivateOnBacklog) {
+        var inv = productRepo.lockByIdAndCompanyId(productId, companyId)
+                .orElseThrow(() -> new EntityNotFoundException("Inventory not found"));
+
+        int total = inv.getTotalQuantity() != null ? inv.getTotalQuantity() : 0;
+        int committed = inv.getQuantityCommitted() != null ? inv.getQuantityCommitted() : 0;
+        int backordered = Math.max(committed - total, 0);
+
+        if (allow) {
+            inv.setAllowBackorder(true);
+            // اختياري: ما بنغيّر isActive هون؛ خليه بيد الأدمن
+            productRepo.save(inv);
+            return new ToggleBackorderResult(true, Boolean.FALSE.equals(inv.getIsActive()),
+                    total, committed, backordered);
+        }
+
+        // إطفاء backorder
+        if (backordered > 0) {
+            if (autoDeactivateOnBacklog) {
+                inv.setAllowBackorder(false);
+                inv.setIsActive(false); // ← المطلوب: إخفاء المنتج وإيقاف الطلبات الجديدة
+                productRepo.save(inv);
+                return new ToggleBackorderResult(false, true, total, committed, backordered);
+            } else {
+                throw new IllegalStateException(
+                        "Cannot disable backorders while committed > total (restock or auto-deactivate).");
+            }
+        } else {
+            inv.setAllowBackorder(false);
+            productRepo.save(inv);
+            return new ToggleBackorderResult(false, Boolean.FALSE.equals(inv.getIsActive()),
+                    total, committed, 0);
+        }
+    }
+
+    public record ToggleBackorderResult(boolean backorderEnabled,
+            boolean deactivated,
+            int total, int committed, int backordered) {
     }
 
 }

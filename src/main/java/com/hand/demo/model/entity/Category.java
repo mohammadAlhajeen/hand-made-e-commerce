@@ -1,10 +1,12 @@
 package com.hand.demo.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -27,6 +29,7 @@ import lombok.Data;
 @Entity
 @Table(name = "categories")
 @SQLDelete(sql = "UPDATE categories SET deleted = true WHERE id=?")
+@SQLRestriction(value = "deleted = false")
 public class Category {
 
     @Id
@@ -49,11 +52,7 @@ public class Category {
     private List<Category> children;
 
     @ManyToMany
-    @JoinTable(
-            name = "category_product",
-            joinColumns = @JoinColumn(name = "category_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
+    @JoinTable(name = "category_product", joinColumns = @JoinColumn(name = "category_id"), inverseJoinColumns = @JoinColumn(name = "product_id"))
     @JsonBackReference
     private List<Product> products;
 

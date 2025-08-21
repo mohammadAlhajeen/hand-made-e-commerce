@@ -1,3 +1,4 @@
+
 package com.hand.demo.service;
 
 import java.util.List;
@@ -7,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hand.demo.model.entity.AttributeValue;
-import com.hand.demo.model.repository.AttributeValueRepository;
+import com.hand.demo.repository.AttributeValueRepository;
 
 @Service
 public class AttributeValueService {

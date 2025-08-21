@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hand.demo.model.entity.OrderItemAttributeValue;
-import com.hand.demo.model.repository.OrderItemAttributeValueRepository;
+import com.hand.demo.repository.OrderItemAttributeValueRepository;
 
 @Service
 public class OrderItemAttributeValueService {

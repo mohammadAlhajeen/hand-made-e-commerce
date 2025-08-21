@@ -1,3 +1,5 @@
+
+
 package com.hand.demo.service;
 
 import java.util.List;
@@ -7,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hand.demo.model.entity.Customer;
-import com.hand.demo.model.repository.CustomerRepository;
+import com.hand.demo.repository.CustomerRepository;
 
 @Service
 public class CustomerService {

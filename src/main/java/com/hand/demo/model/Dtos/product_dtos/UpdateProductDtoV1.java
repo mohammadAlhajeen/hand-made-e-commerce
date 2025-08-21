@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.hand.demo.model.Dtos.CreateImageDto;
+import com.hand.demo.model.Dtos.image_dtos.CreateImageDto;
 import com.hand.demo.model.entity.Product;
 
 import jakarta.validation.constraints.DecimalMin;
@@ -21,8 +21,7 @@ public class UpdateProductDtoV1 {
 
     @DecimalMin(value = "0", message = "price must be positive")
     private BigDecimal price;
-    @DecimalMin(value = "0", message = "quantity must be positive")
-    private Integer quantity;
+
 
     private Boolean isActive;
 

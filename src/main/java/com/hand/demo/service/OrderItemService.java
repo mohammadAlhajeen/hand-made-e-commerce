@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hand.demo.model.entity.OrderItem;
-import com.hand.demo.model.repository.OrderItemRepository;
+import com.hand.demo.repository.OrderItemRepository;
 
 @Service
 public class OrderItemService {

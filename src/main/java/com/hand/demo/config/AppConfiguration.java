@@ -25,9 +25,9 @@ public class AppConfiguration {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(appUserService);
         provider.setPasswordEncoder(passwordEncoder());
-        provider.setUserDetailsService(appUserService);
+
         return provider;
     }
 

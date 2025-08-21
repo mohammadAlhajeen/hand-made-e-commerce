@@ -15,24 +15,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hand.demo.config.JwtService;
-import com.hand.demo.model.Dtos.AppUserLoginDto;
-import com.hand.demo.model.Dtos.AppUserRegisterDTO;
-import com.hand.demo.model.Dtos.UpdateAppUserDto;
-import com.hand.demo.model.Dtos.UpdateCompanyDto;
+import com.hand.demo.model.Dtos.appuser_dtos.AppUserLoginDto;
+import com.hand.demo.model.Dtos.appuser_dtos.AppUserRegisterDTO;
+import com.hand.demo.model.Dtos.appuser_dtos.UpdateAppUserDto;
+import com.hand.demo.model.Dtos.appuser_dtos.UpdateCompanyDto;
 import com.hand.demo.model.Dtos.product_dtos.CreateInStockProductDto;
 import com.hand.demo.model.Dtos.product_dtos.CreatePreOrderProductDto;
 import com.hand.demo.model.Dtos.product_dtos.InStockProductForCompanyV1;
 import com.hand.demo.model.Dtos.product_dtos.PreOrderProductForCompanyV1;
-import com.hand.demo.model.Dtos.product_dtos.ProductForCompanyV1;
+import com.hand.demo.model.Dtos.product_dtos.ProductDTOs;
 import com.hand.demo.model.Dtos.product_dtos.UpdateInStockProductDto;
 import com.hand.demo.model.Dtos.product_dtos.UpdatePreOrderProductDto;
 import com.hand.demo.model.entity.Address;
 import com.hand.demo.model.entity.Company;
 import com.hand.demo.model.entity.MediaItem;
-import com.hand.demo.model.repository.AddressRepository;
-import com.hand.demo.model.repository.AppUserRepository;
-import com.hand.demo.model.repository.CompanyRepository;
-import com.hand.demo.model.repository.GetReviewsProjection;
+import com.hand.demo.repository.AddressRepository;
+import com.hand.demo.repository.AppUserRepository;
+import com.hand.demo.repository.CompanyRepository;
+import com.hand.demo.repository.GetReviewsProjection;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -144,14 +144,14 @@ public class CompanyService extends AppUserService {
         return inStockProductService.createInStockProductDto(productDto, company);
     }
 
-    public ProductForCompanyV1 getCompanyProduct(Long productId) throws CredentialException {
+    public ProductDTOs getCompanyProduct(Long productId) throws CredentialException {
         UserDetails appUser = super.userAuthorization();
         Company company = companyRepository.findByUsername(appUser.getUsername())
                 .orElseThrow(() -> new CredentialException("Company not found"));
         return productService.getCompanyProduct(productId, company.getId());
     }
 
-    public java.util.List<com.hand.demo.model.repository.CompanyProductProjection> listMyProducts()
+    public java.util.List<com.hand.demo.repository.CompanyProductProjection> listMyProducts()
             throws CredentialException {
         UserDetails appUser = super.userAuthorization();
         Company company = companyRepository.findByUsername(appUser.getUsername())

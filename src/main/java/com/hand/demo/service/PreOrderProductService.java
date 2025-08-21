@@ -18,9 +18,8 @@ import com.hand.demo.model.entity.Company;
 import com.hand.demo.model.entity.PreOrderProduct;
 import com.hand.demo.model.entity.Product;
 import com.hand.demo.model.entity.Tag;
-import com.hand.demo.model.repository.AttributeRepository;
-import com.hand.demo.model.repository.CategoryRepository;
-import com.hand.demo.model.repository.PreOrderProductRepository;
+import com.hand.demo.repository.CategoryRepository;
+import com.hand.demo.repository.PreOrderProductRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,6 @@ public class PreOrderProductService {
     private final PreOrderProductRepository preOrderProductRepo;
     private final CategoryRepository categoryRepo;
     private final ProductImageAssignService mediaService;
-    private final AttributeRepository attributeRepository;
 
     // ##############################
     // ######## Create Product ######

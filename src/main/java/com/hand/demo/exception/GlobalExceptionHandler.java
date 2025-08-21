@@ -6,8 +6,6 @@ import java.util.Map;
 
 import javax.security.auth.login.CredentialException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -23,14 +21,12 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(
             MethodArgumentNotValidException ex) {
         
-        logger.error("Validation error occurred: {}", ex.getMessage());
         
         Map<String, Object> response = new HashMap<>();
         Map<String, String> errors = new HashMap<>();
@@ -39,14 +35,14 @@ public class GlobalExceptionHandler {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
-            logger.error("Field '{}' has error: {}", fieldName, errorMessage);
+        
         });
         
         response.put("status", "error");
         response.put("message", "Validation failed");
         response.put("errors", errors);
         
-        logger.info("Returning validation error response: {}", response);
+        
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
@@ -58,13 +54,13 @@ public class GlobalExceptionHandler {
         return ApiErrorBuilder.notFound(ex.getMessage(), request.getRequestURI());
     }
 
-  /*  @ExceptionHandler(Exception.class)
+   @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(
             Exception ex,
             HttpServletRequest request) {
-TODO 
+
        return ApiErrorBuilder.serverError("Something  wrong", request.getRequestURI());
-    }*/
+    }
 
     @ExceptionHandler(JwtException.class)
     public ResponseEntity<ErrorResponse> handleJwtException(

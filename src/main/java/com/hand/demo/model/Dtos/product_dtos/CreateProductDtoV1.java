@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.hand.demo.model.Dtos.CreateImageDto;
+import com.hand.demo.model.Dtos.image_dtos.CreateImageDto;
 import com.hand.demo.model.entity.Attribute;
 import com.hand.demo.model.entity.AttributeValue;
 import com.hand.demo.model.entity.Product;

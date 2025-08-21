@@ -26,14 +26,14 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.hand.demo.model.Dtos.UpdateCompanyDto;
+import com.hand.demo.model.Dtos.appuser_dtos.UpdateCompanyDto;
 import com.hand.demo.model.Dtos.product_dtos.CreateInStockProductDto;
 import com.hand.demo.model.Dtos.product_dtos.CreatePreOrderProductDto;
 import com.hand.demo.model.Dtos.product_dtos.InStockProductForCompanyV1;
 import com.hand.demo.model.Dtos.product_dtos.PreOrderProductForCompanyV1;
 import com.hand.demo.model.Dtos.product_dtos.UpdateInStockProductDto;
 import com.hand.demo.model.Dtos.product_dtos.UpdatePreOrderProductDto;
-import com.hand.demo.model.repository.GetReviewsProjection;
+import com.hand.demo.repository.GetReviewsProjection;
 import com.hand.demo.service.CompanyService;
 import com.hand.demo.service.MediaService;
 
@@ -54,13 +54,14 @@ public class CompanyController {
     private final CompanyService companyService;
 
     @PostMapping("/update")
-    public ResponseEntity<?> companyUpdate(@RequestBody  UpdateCompanyDto company) {
+    public ResponseEntity<?> companyUpdate(@RequestBody  UpdateCompanyDto company) throws CredentialException {
 
         try {
             return new ResponseEntity<>(companyService.updateCompany(company), HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+      
 
     }
     // ############################
@@ -72,13 +73,12 @@ public class CompanyController {
     public ResponseEntity<?> createPreOrderProduct(@RequestBody @Valid CreatePreOrderProductDto productDto)
             throws CredentialException {
         System.out.println(productDto);
-        try {
+   
             PreOrderProductForCompanyV1 product = companyService.createPreOrderProductDto(productDto);
             return ResponseEntity.ok(product);
-        } catch (Exception e) {
-            System.out.println(e);
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+   
+      
+        
     }
 
     // Create In-Stock Product
@@ -86,14 +86,11 @@ public class CompanyController {
     public ResponseEntity<?> createInStockProduct(@RequestBody @Valid CreateInStockProductDto productDto)
             throws CredentialException {
         System.out.println(productDto);
-        try {
+        
             InStockProductForCompanyV1 product = companyService.createInStockProductDto(productDto);
             System.out.println(product.toString());
             return ResponseEntity.ok(product);
-        } catch (Exception e) {
-            System.out.println(e);
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+      
     }
 
     // Update Product
@@ -103,12 +100,10 @@ public class CompanyController {
             @RequestBody @Valid UpdatePreOrderProductDto productDto) throws CredentialException {
         // TODO
         PreOrderProductForCompanyV1 updatedProduct = companyService.updateMyProduct(productDto, productId);
-        System.out.println(updatedProduct);
-        try {
+
+
             return ResponseEntity.ok(updatedProduct);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        
     }
 
     @PutMapping("/InStockProduct/{productId}")
@@ -117,12 +112,10 @@ public class CompanyController {
             @RequestBody @Valid UpdateInStockProductDto productDto) throws CredentialException {
         // TODO
         InStockProductForCompanyV1 updatedProduct = companyService.updateMyProduct(productDto, productId);
-        System.out.println(updatedProduct);
-        try {
+
+ 
             return ResponseEntity.ok(updatedProduct);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        
     }
 
     // جلب منتج معين

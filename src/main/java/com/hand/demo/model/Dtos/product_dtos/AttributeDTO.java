@@ -1,7 +1,7 @@
 package com.hand.demo.model.Dtos.product_dtos;
 import java.util.List;
 
-import com.hand.demo.model.Dtos.GetImages;
+import com.hand.demo.model.Dtos.image_dtos.GetImages;
 import com.hand.demo.model.entity.Attribute;
 
 import lombok.Data;

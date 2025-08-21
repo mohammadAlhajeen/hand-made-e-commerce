@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hand.demo.model.entity.Address;
-import com.hand.demo.model.repository.AddressRepository;
+import com.hand.demo.repository.AddressRepository;
 
 @Service
 public class AddressService {

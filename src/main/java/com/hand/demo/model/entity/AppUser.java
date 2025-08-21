@@ -4,7 +4,6 @@
  */
 package com.hand.demo.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
@@ -14,8 +13,9 @@ import org.hibernate.annotations.SQLDelete;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.hand.demo.model.Dtos.AppUserRegisterDTO;
-import com.hand.demo.model.Dtos.UpdateCompanyDto;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.hand.demo.model.Dtos.appuser_dtos.AppUserRegisterDTO;
+import com.hand.demo.model.Dtos.appuser_dtos.UpdateCompanyDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

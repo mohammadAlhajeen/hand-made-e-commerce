@@ -1,15 +1,13 @@
 package com.hand.demo.model.Dtos.product_dtos;
 
-import com.hand.demo.model.Dtos.CreateImageDto;
-import com.hand.demo.model.Dtos.GetImageDtoProduct;
 import java.math.BigDecimal;
 import java.util.List;
 
-import com.hand.demo.model.Dtos.GetImages;
+import com.hand.demo.model.Dtos.image_dtos.GetImageDtoProduct;
+import com.hand.demo.model.Dtos.image_dtos.GetImages;
 import com.hand.demo.model.Dtos.product_dtos.AttributeDTO.AttributeValueDTO;
+import com.hand.demo.model.entity.Category;
 import com.hand.demo.model.entity.InStockProduct;
-import com.hand.demo.model.entity.ProductImage;
-import java.util.stream.Collector;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,19 +22,20 @@ import lombok.ToString;
 @Setter
 @ToString
 @Data
-public final class InStockProductForCompanyV1 implements ProductForCompanyV1 {
+public final class InStockProductForCompanyV1 implements ProductDTOs {
 
     private Long id;
     private String name;
     private String description;
     private BigDecimal price;
     private Boolean isActive;
-    private Long companyId;
-    private List<Long> categoryIds;
+    private List<Category> categories;
     private List<GetImageDtoProduct> images;
     private List<AttributeDTO> attributes;
     private List<String> tagNames;
-    private Integer quantity;
+    private Integer totalQuantity = 0;
+    private Integer quantityAvailable = 0;
+    private Integer quantityCommitted = 0;
     private boolean returnable;
     private Integer returnDays;
     private boolean allowBackorder;
@@ -49,17 +48,19 @@ public final class InStockProductForCompanyV1 implements ProductForCompanyV1 {
         dto.setDescription(product.getDescription());
         dto.setPrice(product.getPrice());
         dto.setIsActive(product.getIsActive());
-        dto.setCompanyId(product.getCompany() != null ? product.getCompany().getId() : null);
+        dto.setReturnable(product.isReturnable());
+        dto.setReturnDays(product.getReturnDays());
+        dto.setAllowBackorder(product.isAllowBackorder());
         // التصنيفات
         if (product.getCategories() != null) {
-            dto.setCategoryIds(product.getCategories().stream().map(c -> c.getId()).toList());
+            dto.setCategories(product.getCategories());
         }
         // الصور
         if (product.getImages() != null) {
             List<GetImageDtoProduct> img = product.getImages()
                     .stream()
                     .map(img1 -> new GetImageDtoProduct(img1.getId(), img1.isMain(),img1.getMedia().getAbsoluteUrl(),img1.getSortOrder()))
-                    .toList() ;            
+                    .toList() ;
                     
             dto.setImages(img);
         }
@@ -90,7 +91,6 @@ public final class InStockProductForCompanyV1 implements ProductForCompanyV1 {
                                     .toList();
                             valDto.setImage(images);
                         }
-
                         return valDto;
                     }).toList());
                 }
@@ -98,7 +98,9 @@ public final class InStockProductForCompanyV1 implements ProductForCompanyV1 {
             }).toList());
         }
 
-        dto.setQuantity(product.getQuantity());
+        dto.setQuantityAvailable(product.getQuantityAvailable());
+        dto.setQuantityCommitted(product.getQuantityCommitted());
+        dto.setTotalQuantity(product.getTotalQuantity());
         dto.setReturnable(product.isReturnable());
         dto.setReturnDays(product.getReturnDays());
         dto.setAllowBackorder(product.isAllowBackorder());

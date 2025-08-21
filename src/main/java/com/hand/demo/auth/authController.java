@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hand.demo.model.Dtos.AppUserRegisterDTO;
-import com.hand.demo.model.Dtos.LogInRequest;
+import com.hand.demo.model.Dtos.appuser_dtos.AppUserRegisterDTO;
+import com.hand.demo.model.Dtos.appuser_dtos.LogInRequest;
 import com.hand.demo.service.CompanyService;
 
 import jakarta.validation.Valid;

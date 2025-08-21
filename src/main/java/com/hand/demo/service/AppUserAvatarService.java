@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hand.demo.model.entity.AppUser;
 import com.hand.demo.model.entity.AppUserImage;
 import com.hand.demo.model.entity.MediaItem;
-import com.hand.demo.model.repository.AppUserImageRepository;
+import com.hand.demo.repository.AppUserImageRepository;
 
 import lombok.RequiredArgsConstructor;
 

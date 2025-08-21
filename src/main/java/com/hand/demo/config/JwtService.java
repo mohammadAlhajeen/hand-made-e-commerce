@@ -20,22 +20,18 @@ import io.jsonwebtoken.security.Keys;
 public class JwtService {
 
     @Value("${jwt.secret}")
-    private  String secretKey;
-    private final int expireTime = 1000 * 60 * 60 * 10;
+    private String secretKey;
+    private final int expireTime = 1000 * 60 * 60 * 24 * 100;
 
     public Claims getAllClaimsFromToken(String jwtToken) {
-        try {
-            Claims claims = Jwts
-                    .parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(jwtToken)
-                    .getPayload();
-            return claims;
-        } catch (Exception e) {
 
-            throw new RuntimeException("Invalid token", e);
-        }
+        Claims claims = Jwts
+                .parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(jwtToken)
+                .getPayload();
+        return claims;
 
     }
 

@@ -9,9 +9,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hand.demo.model.entity.Tag;
-import com.hand.demo.model.repository.TagRepository;
+import com.hand.demo.repository.TagRepository;
 
 @Service
 public class TagService {
@@ -19,11 +18,6 @@ public class TagService {
     @Autowired
     private TagRepository tagRepository;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private ObjectMapper objectMapper;
     @Autowired
     private JdbcTemplate jdbc;
 
@@ -60,6 +54,17 @@ public class TagService {
                 100,
                 (ps, name) -> ps.setString(1, name));
         return tagRepository.findAllByNameIn(names);
+    }
+
+    // ##############################
+    // ######### Public APIs ########
+    // ##############################
+    
+    /**
+     * Get all tags for public display
+     */
+    public List<Tag> getAllTags() {
+        return findAll();
     }
 
 }
