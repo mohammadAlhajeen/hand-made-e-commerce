@@ -15,7 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.hand.demo.model.Dtos.appuser_dtos.AppUserRegisterDTO;
-import com.hand.demo.model.Dtos.appuser_dtos.UpdateCompanyDto;
+import com.hand.demo.model.Dtos.appuser_dtos.UpdateAppUserDto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -110,10 +110,10 @@ private Set<Address> address;
         this.deleted = false;
     }
 
-    public void updateDtoToAppUser(UpdateCompanyDto updateCompanyDto) {
-        this.setName(Optional.ofNullable(updateCompanyDto.getName()).orElse(this.getName()));
-        this.setPhone(Optional.ofNullable(updateCompanyDto.getPhone()).orElse(this.getPhone()));
-        this.setUrlLocation(Optional.ofNullable(updateCompanyDto.getUrlLocation()).orElse(this.getUrlLocation()));
+    public void updateDtoToAppUser(UpdateAppUserDto updateAppUserDto) {
+        this.setName(Optional.ofNullable(updateAppUserDto.getName()).orElse(this.getName()));
+        this.setPhone(Optional.ofNullable(updateAppUserDto.getPhone()).orElse(this.getPhone()));
+        this.setUrlLocation(Optional.ofNullable(updateAppUserDto.getUrlLocation()).orElse(this.getUrlLocation()));
 
     }
 

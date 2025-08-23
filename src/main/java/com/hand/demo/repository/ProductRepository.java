@@ -128,4 +128,52 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             """)
   List<GetProductCardProjection> findActiveByCategoryId(@Param("categoryId") Long categoryId);
 
+  // ##############################
+  // ### Company Storefront APIs ##
+  // ##############################
+  
+  /**
+   * Get paginated active products for company storefront
+   */
+  @Query("""
+            SELECT p.id AS id, p.name AS name, p.price AS price,
+                   (
+                       SELECT media.absoluteUrl FROM ProductImage img
+                       LEFT JOIN img.media media
+                       WHERE img.product = p AND img.main = true
+                       ORDER BY img.id ASC
+                   ) AS mainImageUrl,
+                   p.preparationDays AS preparationDays,
+                   p.averageRating AS averageRating
+            FROM Product p
+            WHERE p.company.id = :companyId AND p.isActive = true
+            """)
+  org.springframework.data.domain.Page<GetProductCardProjection> findActiveProductsByCompanyId(
+      @Param("companyId") Long companyId, 
+      org.springframework.data.domain.Pageable pageable);
+
+  /**
+   * Get company product statistics
+   */
+  @Query("""
+            SELECT COUNT(p) AS totalProducts,
+                   SUM(CASE WHEN p.isActive = true THEN 1 ELSE 0 END) AS activeProducts,
+                   AVG(p.averageRating) AS avgRating
+            FROM Product p
+            WHERE p.company.id = :companyId
+            """)
+  CompanyProductStatsProjection getCompanyProductStats(@Param("companyId") Long companyId);
+
+  /**
+   * Get distinct categories for company products
+   */
+  @Query("""
+            SELECT DISTINCT c.name
+            FROM Product p
+            JOIN p.categories c
+            WHERE p.company.id = :companyId AND p.isActive = true
+            ORDER BY c.name
+            """)
+  List<String> findCategoriesByCompanyId(@Param("companyId") Long companyId);
+
 }

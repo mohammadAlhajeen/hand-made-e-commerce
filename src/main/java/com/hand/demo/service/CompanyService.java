@@ -1,24 +1,18 @@
 package com.hand.demo.service;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
 
 import javax.security.auth.login.CredentialException;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import com.hand.demo.config.JwtService;
 import com.hand.demo.model.Dtos.appuser_dtos.AppUserLoginDto;
 import com.hand.demo.model.Dtos.appuser_dtos.AppUserRegisterDTO;
+import com.hand.demo.model.Dtos.appuser_dtos.GetUpdatedAppUserDto;
 import com.hand.demo.model.Dtos.appuser_dtos.UpdateAppUserDto;
-import com.hand.demo.model.Dtos.appuser_dtos.UpdateCompanyDto;
 import com.hand.demo.model.Dtos.product_dtos.CreateInStockProductDto;
 import com.hand.demo.model.Dtos.product_dtos.CreatePreOrderProductDto;
 import com.hand.demo.model.Dtos.product_dtos.InStockProductForCompanyV1;
@@ -26,11 +20,7 @@ import com.hand.demo.model.Dtos.product_dtos.PreOrderProductForCompanyV1;
 import com.hand.demo.model.Dtos.product_dtos.ProductDTOs;
 import com.hand.demo.model.Dtos.product_dtos.UpdateInStockProductDto;
 import com.hand.demo.model.Dtos.product_dtos.UpdatePreOrderProductDto;
-import com.hand.demo.model.entity.Address;
 import com.hand.demo.model.entity.Company;
-import com.hand.demo.model.entity.MediaItem;
-import com.hand.demo.repository.AddressRepository;
-import com.hand.demo.repository.AppUserRepository;
 import com.hand.demo.repository.CompanyRepository;
 import com.hand.demo.repository.GetReviewsProjection;
 
@@ -41,53 +31,30 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 @RequiredArgsConstructor
 public class CompanyService extends AppUserService {
-
-    private final AppUserRepository appUserRepository;
     private final CompanyRepository companyRepository;
-    private final JwtService jwtService;
-    private final AppUserAvatarService appUserImageService;
-    private final AddressRepository addressRepository;
     private final ProductService productService;
-    private final MediaService mediaService;
-    private final PreOrderProductService preOrderProductService;
     private final InStockProductService inStockProductService;
+    private final PreOrderProductService preOrderProductService;
 
     // ################################
     // ###### Company Operations ######
     // ################################
     public Company findCompanyById(Long id) {
-        return companyRepository.findById(id).orElseThrow(() -> new RuntimeException("Company not fund"));
+    return companyRepository.findById(id).orElseThrow(() -> new RuntimeException("Company not found"));
     }
 
-    public Company saveCompanyHelper(AppUserRegisterDTO registerDTO) throws IOException {
-   
-        if (appUserRepository.existsByUsername(registerDTO.getUsername())) {
-            throw new IllegalArgumentException("Invalid Username");
-        }
-
-        registerDTO.setPassword(passwordEncoder().encode(registerDTO.getPassword()));
-        Company company = new Company();
-        company.RegisterDtoToAppUser(registerDTO);
-        if (Objects.nonNull(registerDTO.getAddressId())) {
-            Set<Address> addressSet = new HashSet<>(addressRepository.findAllById(registerDTO.getAddressId()));
-            company.setAddress(addressSet);
-        }
+    public Company saveAppUserHelper(AppUserRegisterDTO registerDTO) throws IOException {
+        Company company = (Company) super.saveAppUserHelper(registerDTO);
         companyRepository.save(company);
         return company;
     }
 
-    public List<MediaItem> findMediaByUserId(Long userId) {
-        return mediaService.findMediaByUserId(userId);
-    }
-
     public AppUserLoginDto createCompany(AppUserRegisterDTO registerDTO) throws IOException {
-        Company company = saveCompanyHelper(registerDTO);
-        var jwtToken = jwtService.jwtGenerator(company);
-        AppUserLoginDto appUserLoginDto = new AppUserLoginDto(company, jwtToken);
-        return appUserLoginDto;
+        // Delegate to AppUserService implementation which handles creation + JWT
+        return super.createAppUser(registerDTO);
     }
 
-    public Company updateCompanyHelper(UpdateCompanyDto companyDto) throws CredentialException {
+    public Company updateCompanyHelper(UpdateAppUserDto companyDto) throws CredentialException {
         UserDetails appUser = super.userAuthorization();
         Company company = companyRepository.findByUsername(appUser.getUsername()).get();
         company.updateDtoToAppUser(companyDto);
@@ -95,34 +62,16 @@ public class CompanyService extends AppUserService {
         return company;
     }
 
-    public UpdateAppUserDto updateCompany(UpdateCompanyDto companyDto) throws CredentialException {
+    public GetUpdatedAppUserDto updateCompany(UpdateAppUserDto companyDto) throws CredentialException {
 
         Company company = updateCompanyHelper(companyDto);
         if (companyDto.getMediaId() != null) {
             appUserImageService.setAvatar(company, companyDto.getMediaId());
         }
-       UpdateAppUserDto updateAppUserDto=new UpdateAppUserDto( companyRepository.save(company));
+        GetUpdatedAppUserDto updateAppUserDto = new GetUpdatedAppUserDto(companyRepository.save(company));
         return updateAppUserDto;
     }
 
-    // ##################################
-    // ######## Image Operations ########
-    // ##################################
-    public MediaItem addImg(MultipartFile file) throws IOException, CredentialException {
-        UserDetails appUser = super.userAuthorization();
-        Company company = companyRepository.findByUsername(appUser.getUsername())
-                .orElseThrow(() -> new CredentialException("Company not found"));
-
-        return mediaService.uploadImage(company.getId(), file);
-    }
-
-    public void removeImg(UUID imageId) throws IOException, CredentialException {
-        UserDetails appUser = super.userAuthorization();
-        Company company = companyRepository.findByUsername(appUser.getUsername())
-                .orElseThrow(() -> new CredentialException("Company not found"));
-        mediaService.removeItem(imageId, company.getId());
-
-    }
 
     // ##################################
     // ####### Product Operations #######

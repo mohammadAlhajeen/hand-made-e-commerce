@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hand.demo.service.AppUserService;
 
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,11 @@ public class AppConfiguration {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+    
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
     
 }

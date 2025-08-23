@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.hand.demo.model.Dtos.appuser_dtos.UpdateCompanyDto;
+import com.hand.demo.model.Dtos.appuser_dtos.UpdateAppUserDto;
 import com.hand.demo.model.Dtos.product_dtos.CreateInStockProductDto;
 import com.hand.demo.model.Dtos.product_dtos.CreatePreOrderProductDto;
 import com.hand.demo.model.Dtos.product_dtos.InStockProductForCompanyV1;
@@ -54,7 +54,7 @@ public class CompanyController {
     private final CompanyService companyService;
 
     @PostMapping("/update")
-    public ResponseEntity<?> companyUpdate(@RequestBody  UpdateCompanyDto company) throws CredentialException {
+    public ResponseEntity<?> companyUpdate(@RequestBody  UpdateAppUserDto company) throws CredentialException {
 
         try {
             return new ResponseEntity<>(companyService.updateCompany(company), HttpStatus.OK);
