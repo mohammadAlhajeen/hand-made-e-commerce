@@ -50,14 +50,19 @@ public class InStockProduct extends Product {
         return allowBackorder ? Math.max(raw, 0) : raw;
     }
 
+
     @PrePersist
     @PreUpdate
     private void normalize() {
-        // لو غير قابل للإرجاع، تأكد من تفريغ returnDays
         if (!returnable) {
             returnDays = null;
         }
-        // احذف القيم السالبة بالخطأ
-    
+        if (totalQuantity != null && totalQuantity < 0) {
+            totalQuantity = 0;
+        }
+        if (quantityCommitted != null && quantityCommitted < 0) {
+            quantityCommitted = 0;
+        }
     }
+
 }

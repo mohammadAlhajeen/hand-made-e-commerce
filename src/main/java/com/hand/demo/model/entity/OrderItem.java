@@ -1,18 +1,17 @@
 package com.hand.demo.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.hand.demo.model.enums.OrderItemType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,79 +19,54 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import lombok.Data;
+import jakarta.persistence.Transient;
+import jakarta.validation.constraints.Min;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter @Setter
 @Entity
-@Table(name = "order_items")
-@SQLDelete(sql = "UPDATE order_items SET deleted = true WHERE id = ?")
-@SQLRestriction("deleted = false")
+@Table(name="order_items")
 public class OrderItem {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    // ✅ ربط الطلب
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
+    @ManyToOne(fetch=FetchType.LAZY, optional=false) @JoinColumn(name="order_id")
+    @JsonManagedReference
     private Order order;
 
+    @Column(name="product_id", nullable=false) private Long productId;
+    @Column(name="product_name", nullable=false) private String productName;
 
-    @Embedded
-    private ProductSnapshot productSnapshot;
+    @Enumerated(EnumType.STRING) @Column(nullable=false, length=10)
+    private OrderItemType type;
 
-    @Column(nullable = false)
-    private Integer quantity;
+    @Column(name="unit_price_base", nullable=false, precision=10, scale=2)
+    private BigDecimal unitPriceBase;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal basePrice;
+    @Column(name="unit_price_extra", nullable=false, precision=10, scale=2)
+    private BigDecimal unitPriceExtra = BigDecimal.ZERO;
 
-    @Column(name = "tax_rate", precision = 5, scale = 2)
-    private BigDecimal taxRate = BigDecimal.ZERO;
+    @Min(1) @Column(name="qty_ordered", nullable=false)
+    private Integer qtyOrdered;
 
-    @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL, orphanRemoval = true)
-      @JsonBackReference
+    // تتبّع التنفيذ الجزئي:
+    @Column(name="qty_allocated", nullable=false) private Integer qtyAllocated = 0; // حجز مخزون
+    @Column(name="qty_shipped",   nullable=false) private Integer qtyShipped   = 0; // شُحن
+    @Column(name="qty_canceled",  nullable=false) private Integer qtyCanceled  = 0; // أُلغي
 
-    private List<OrderItemAttributeValue> attributeValues = new ArrayList<>();
+    @Column(name="allow_backorder", nullable=false) private boolean allowBackorder;
+    @Column(name="preparation_days") private Float preparationDays;
 
-    @Column(name = "total_price", precision = 10, scale = 2)
-    private BigDecimal totalPrice = BigDecimal.ZERO;
+    @OneToMany(mappedBy="orderItem", cascade=CascadeType.ALL, orphanRemoval=true)
+    @JsonManagedReference
+    private List<OrderItemSelection> selections = new ArrayList<>();
 
-    @Column(name = "deleted")
-    private boolean deleted = false;
+    public BigDecimal getUnitPrice(){return unitPriceBase.add(unitPriceExtra==null?BigDecimal.ZERO:unitPriceExtra);}
+    public BigDecimal getLineTotal(){return getUnitPrice().multiply(BigDecimal.valueOf(qtyOrdered));}
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-        calculateTotalPrice();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-        calculateTotalPrice();
-    }
-
-    public void calculateTotalPrice() {
-        BigDecimal baseTotal = basePrice.multiply(BigDecimal.valueOf(quantity));
-        BigDecimal attrTotal = attributeValues.stream()
-                .map(OrderItemAttributeValue::getPriceIncrement)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal subtotal = baseTotal.add(attrTotal);
-        BigDecimal taxAmount = taxRate != null ? subtotal.multiply(taxRate) : BigDecimal.ZERO;
-
-        this.totalPrice = subtotal.add(taxAmount);
+    @Transient
+    public Integer getQtyBackordered(){
+        return Math.max(0, qtyOrdered - qtyAllocated - qtyCanceled);
     }
 }

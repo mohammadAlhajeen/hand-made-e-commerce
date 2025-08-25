@@ -1,56 +1,52 @@
 package com.hand.demo.model.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+
+import org.hibernate.annotations.SQLRestriction;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter @Setter
 @Entity
-@Table(name = "carts")
+@Table(
+    name = "carts",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_cart_customer_company_open",
+        columnNames = {"customer_id", "company_id", "closed"}
+    )
+)
+@SQLRestriction("closed = false")
 public class Cart {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name="customer_id")
+    private AppUser customer;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name="company_id")
+    private Company company;
+
+    @OneToMany(mappedBy="cart", cascade=CascadeType.ALL, orphanRemoval=true)
     @JsonBackReference
-    private Customer customer;
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "cart")
-    private List<ProductCart> productCart;
+    private List<CartItem> items = new ArrayList<>();
 
+    @Column(nullable=false) private boolean closed = false;
 
+    @Column(name="created_at", updatable=false) private LocalDateTime createdAt;
+    @Column(name="updated_at") private LocalDateTime updatedAt;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @PrePersist void p(){createdAt=LocalDateTime.now(); updatedAt=createdAt;}
+    @PreUpdate  void u(){updatedAt=LocalDateTime.now();}
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    public void addItem(CartItem item){item.setCart(this); items.add(item);}
+    public BigDecimal getSubtotal(){
+        return items.stream().map(CartItem::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

@@ -1,95 +1,60 @@
 package com.hand.demo.model.entity;
 
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.hand.demo.model.enums.OrderStatus;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.Getter; import lombok.Setter;
 
-@Data
+@Getter @Setter
 @Entity
-@Table(name = "orders")
-@SQLDelete(sql = "UPDATE orders SET deleted = true WHERE id = ?")
-@SQLRestriction("deleted = false")
-
+@Table(name="orders", indexes=@Index(name="idx_order_company_status", columnList="company_id,status"))
 public class Order {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
+    @Version private Long version;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
-      @JsonBackReference
+    @Column(name="order_number", unique=true, length=32, nullable=false)
+    private String orderNumber;
 
-    private Customer customer;
+    @ManyToOne(fetch=FetchType.LAZY, optional=false) @JoinColumn(name="customer_id")
+    private AppUser customer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "company_id", nullable = false)
+    @ManyToOne(fetch=FetchType.LAZY, optional=false) @JoinColumn(name="company_id")
+    private Company company;
+
+    @Enumerated(EnumType.STRING) @Column(nullable=false, length=16)
+    private OrderStatus status = OrderStatus.CREATED;
+
+    @OneToMany(mappedBy="order", cascade=CascadeType.ALL, orphanRemoval=true)
     @JsonBackReference
-  private Company company;
+    private List<OrderItem> items = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "driver_id")
-      @JsonBackReference
-private Driver driver;
+    @Column(name="subtotal", precision=10, scale=2, nullable=false) private BigDecimal subtotal = BigDecimal.ZERO;
+    @Column(name="shipping", precision=10, scale=2, nullable=false) private BigDecimal shipping = BigDecimal.ZERO;
+    @Column(name="discount", precision=10, scale=2, nullable=false) private BigDecimal discount = BigDecimal.ZERO;
+    @Column(name="total", precision=10, scale=2, nullable=false) private BigDecimal total = BigDecimal.ZERO;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private OrderStatus status = OrderStatus.PENDING;
+    @Column(name="created_at", updatable=false) private LocalDateTime createdAt;
+    @Column(name="updated_at") private LocalDateTime updatedAt;
 
-    @Column(name = "total_price", nullable = false, precision = 10, scale = 2)
-    private BigDecimal totalPrice = BigDecimal.ZERO;
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-     @JsonBackReference
- private List<OrderItem> orderItems = new ArrayList<>();
-
-    @Column(name = "deleted")
-    private boolean deleted;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+    @PrePersist void p(){
+        createdAt=LocalDateTime.now(); updatedAt=createdAt;
+        if (orderNumber==null) orderNumber="ORD-"+UUID.randomUUID().toString().replace("-","").substring(0,12).toUpperCase();
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    @PrePersist void p(){
+        createdAt=LocalDateTime.now(); updatedAt=createdAt;
+        if (orderNumber==null) orderNumber="ORD-"+UUID.randomUUID().toString().replace("-","").substring(0,12).toUpperCase();
     }
+    @PreUpdate void u(){updatedAt=LocalDateTime.now();}
 
-    public enum OrderStatus {
-        PENDING,
-        APPROVED,
-        SHIPPED,
-        COMPLETED,
-        CANCELLED
+    public void addItem(OrderItem item){item.setOrder(this); items.add(item);}
+    public void recomputeTotals(){
+        subtotal = items.stream().map(OrderItem::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        total = subtotal.add(shipping).subtract(discount);
     }
 }
