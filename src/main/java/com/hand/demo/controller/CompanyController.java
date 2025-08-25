@@ -27,15 +27,16 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hand.demo.model.Dtos.appuser_dtos.UpdateAppUserDto;
+import com.hand.demo.model.Dtos.page.PageUpdateDTO;
 import com.hand.demo.model.Dtos.product_dtos.CreateInStockProductDto;
 import com.hand.demo.model.Dtos.product_dtos.CreatePreOrderProductDto;
 import com.hand.demo.model.Dtos.product_dtos.InStockProductForCompanyV1;
 import com.hand.demo.model.Dtos.product_dtos.PreOrderProductForCompanyV1;
 import com.hand.demo.model.Dtos.product_dtos.UpdateInStockProductDto;
 import com.hand.demo.model.Dtos.product_dtos.UpdatePreOrderProductDto;
+import com.hand.demo.model.entity.page.PageStatus;
 import com.hand.demo.repository.GetReviewsProjection;
 import com.hand.demo.service.CompanyService;
-import com.hand.demo.service.MediaService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,19 +50,16 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/company")
 public class CompanyController {
 
-    private final MediaService mediaService;
-
     private final CompanyService companyService;
 
     @PostMapping("/update")
-    public ResponseEntity<?> companyUpdate(@RequestBody  UpdateAppUserDto company) throws CredentialException {
+    public ResponseEntity<?> companyUpdate(@RequestBody UpdateAppUserDto company) throws CredentialException {
 
         try {
             return new ResponseEntity<>(companyService.updateCompany(company), HttpStatus.OK);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-      
 
     }
     // ############################
@@ -73,12 +71,9 @@ public class CompanyController {
     public ResponseEntity<?> createPreOrderProduct(@RequestBody @Valid CreatePreOrderProductDto productDto)
             throws CredentialException {
         System.out.println(productDto);
-   
-            PreOrderProductForCompanyV1 product = companyService.createPreOrderProductDto(productDto);
-            return ResponseEntity.ok(product);
-   
-      
-        
+
+        PreOrderProductForCompanyV1 product = companyService.createPreOrderProductDto(productDto);
+        return ResponseEntity.ok(product);
     }
 
     // Create In-Stock Product
@@ -86,11 +81,11 @@ public class CompanyController {
     public ResponseEntity<?> createInStockProduct(@RequestBody @Valid CreateInStockProductDto productDto)
             throws CredentialException {
         System.out.println(productDto);
-        
-            InStockProductForCompanyV1 product = companyService.createInStockProductDto(productDto);
-            System.out.println(product.toString());
-            return ResponseEntity.ok(product);
-      
+
+        InStockProductForCompanyV1 product = companyService.createInStockProductDto(productDto);
+        System.out.println(product.toString());
+        return ResponseEntity.ok(product);
+
     }
 
     // Update Product
@@ -101,9 +96,8 @@ public class CompanyController {
         // TODO
         PreOrderProductForCompanyV1 updatedProduct = companyService.updateMyProduct(productDto, productId);
 
+        return ResponseEntity.ok(updatedProduct);
 
-            return ResponseEntity.ok(updatedProduct);
-        
     }
 
     @PutMapping("/InStockProduct/{productId}")
@@ -113,9 +107,8 @@ public class CompanyController {
         // TODO
         InStockProductForCompanyV1 updatedProduct = companyService.updateMyProduct(productDto, productId);
 
- 
-            return ResponseEntity.ok(updatedProduct);
-        
+        return ResponseEntity.ok(updatedProduct);
+
     }
 
     // جلب منتج معين
@@ -169,17 +162,47 @@ public class CompanyController {
         return ResponseEntity.ok(reviews);
     }
 
-    @PostMapping(value ="/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> addImage(@RequestPart("file") MultipartFile file)
             throws IOException, CredentialException {
         var imageUrl = companyService.addImg(file);
         return ResponseEntity.ok(imageUrl);
     }
 
-
     @DeleteMapping
-    public  ResponseEntity<?> delete(@RequestParam("path") UUID pathOrUrl) throws IOException, CredentialException {
+    public ResponseEntity<?> delete(@RequestParam("path") UUID pathOrUrl) throws IOException, CredentialException {
         companyService.removeImg(pathOrUrl);
         return ResponseEntity.ok("Image deleted successfully");
     }
+
+    // ######################
+    // #### company page ####
+    // ######################
+  @GetMapping("/page/{slug}")
+    public ResponseEntity<?> getCompanyPage(@PathVariable String slug) throws CredentialException {
+
+        var page = companyService.getMyPage(slug);
+        return ResponseEntity.ok(page);
+    }
+
+    @PostMapping("/page")
+    public ResponseEntity<?> postMethodName(@RequestBody PageUpdateDTO pageUpdateDTO) throws CredentialException {
+
+        try {
+            var page = companyService.upsertDraft(pageUpdateDTO);
+            return ResponseEntity.ok(page);
+        } catch (Exception exception) {
+            System.out.println(exception);
+            return null;
+        }
+
+    }
+
+    @PatchMapping("/page/{slug}/status")
+    public ResponseEntity<?> changeMyPageStatus(@PathVariable String slug, @RequestParam PageStatus status)
+            throws CredentialException {
+
+        return ResponseEntity.ok(status);
+    }
+
 }

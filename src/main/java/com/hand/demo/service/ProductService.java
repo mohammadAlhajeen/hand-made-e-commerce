@@ -189,8 +189,9 @@ public class ProductService {
     /**
      * Get products by category
      */
-    public List<GetProductCardProjection> getProductsByCategory(Long categoryId) {
-        return productRepo.findActiveByCategoryId(categoryId);
+    public Page <GetProductCardProjection> getProductsByCategory(Long categoryId) {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("avgRating.averageRating").descending());
+        return productRepo.findActiveByCategoryId(categoryId, pageable);
     }
 
 }

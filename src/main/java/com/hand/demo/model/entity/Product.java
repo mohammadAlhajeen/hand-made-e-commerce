@@ -72,9 +72,7 @@ public abstract class Product {
     @JsonBackReference
     private List<Category> categories = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "products")
-    @JsonBackReference
-    private List<Cart> carts = new ArrayList<>();
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "product_tags",
@@ -89,7 +87,6 @@ public abstract class Product {
 
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
-
     private AvgRating avgRating;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)

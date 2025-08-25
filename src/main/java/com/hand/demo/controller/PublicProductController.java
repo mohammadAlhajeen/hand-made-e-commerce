@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.hand.demo.repository.GetProductCardProjection;
 import com.hand.demo.service.CategoryService;
 import com.hand.demo.service.ProductService;
-import com.hand.demo.service.TagService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,7 +27,6 @@ public class PublicProductController {
 
     private final ProductService productService;
     private final CategoryService categoryService;
-    private final TagService tagService;
 
     // Browse all products
     @GetMapping
@@ -58,15 +56,15 @@ public class PublicProductController {
 
     // Get products by category
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<GetProductCardProjection>> getProductsByCategory(@PathVariable Long categoryId) {
-        List<GetProductCardProjection> products = productService.getProductsByCategory(categoryId);
+    public ResponseEntity<?> getProductsByCategory(@PathVariable Long categoryId) {
+        var products = productService.getProductsByCategory(categoryId);
         return ResponseEntity.ok(products);
     }
 
     // Get featured products
     @GetMapping("/featured")
-    public ResponseEntity<List<GetProductCardProjection>> getFeaturedProducts() {
-        List<GetProductCardProjection> products = productService.getFeaturedProducts();
+    public ResponseEntity<?> getFeaturedProducts() {
+        var products = productService.getFeaturedProducts();
         return ResponseEntity.ok(products);
     }
 

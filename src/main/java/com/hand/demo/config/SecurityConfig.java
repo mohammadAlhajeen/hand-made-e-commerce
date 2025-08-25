@@ -33,7 +33,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/authcontroller/**","/api/products/**")
+                        .requestMatchers("/authcontroller/**","/api/products/**","/companyPages/**","/images/**")
                         .permitAll()
                         .requestMatchers("/company").hasRole("COMPANY").anyRequest().authenticated())
                 .sessionManagement(session -> session

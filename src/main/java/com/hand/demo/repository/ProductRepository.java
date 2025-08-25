@@ -2,6 +2,8 @@ package com.hand.demo.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,168 +14,189 @@ import com.hand.demo.model.entity.Product;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    @org.springframework.data.jpa.repository.Query("""
-                SELECT p.id AS id, p.name AS name, p.price AS price,
-                                             (
-                            SELECT media.absoluteUrl FROM ProductImage img
-                            LEFT JOIN img.media media
-                            WHERE img.product = p AND img.main = true
-                            ORDER BY img.id ASC
-                       )
-                       AS mainImageUrl,
-                       p.preparationDays AS preparationDays,
-                       p.averageRating AS averageRating
-                FROM Product p
-                WHERE p.company.id = :companyId AND p.isActive = true
-            """)
-    List<GetProductCardProjection> findAllActiveProjectedByCompanyId(Long companyId);
+        @org.springframework.data.jpa.repository.Query("""
+                            SELECT p.id AS id, p.name AS name, p.price AS price,
+                                                         (
+                                        SELECT media.absoluteUrl FROM ProductImage img
+                                        LEFT JOIN img.media media
+                                        WHERE img.product = p AND img.main = true
+                                        ORDER BY img.id ASC
+                                   )
+                                   AS mainImageUrl,
+                                   p.preparationDays AS preparationDays,
+                                   p.avgRating.averageRating AS averageRating
+                            FROM Product p
+                            WHERE p.company.id = :companyId AND p.isActive = true
+                        """)
+        List<GetProductCardProjection> findAllActiveProjectedByCompanyId(Long companyId);
 
-    @Query("""
-                SELECT p.id AS id, p.name AS name,
-                                            (
-                            SELECT media.absoluteUrl FROM ProductImage img
-                            LEFT JOIN img.media media
-                            WHERE img.product = p AND img.main = true
-                            ORDER BY img.id ASC
-                       )
-                       AS mainImageUrl,
-                       p.preparationDays AS preparationDays
-                FROM Product p
-                WHERE p.company.id = :companyId
-                ORDER BY p.isActive DESC, p.createdAt ASC
-            """)
-    List<CompanyProductProjection> retrieveProductsForCompany(Long companyId);
+        @Query("""
+                            SELECT p.id AS id, p.name AS name,
+                                                        (
+                                        SELECT media.absoluteUrl FROM ProductImage img
+                                        LEFT JOIN img.media media
+                                        WHERE img.product = p AND img.main = true
+                                        ORDER BY img.id ASC
+                                   )
+                                   AS mainImageUrl,
+                                   p.preparationDays AS preparationDays
+                            FROM Product p
+                            WHERE p.company.id = :companyId
+                            ORDER BY p.isActive DESC, p.createdAt ASC
+                        """)
+        List<CompanyProductProjection> retrieveProductsForCompany(Long companyId);
 
-    @Query(value = "SELECT * FROM search_products_cards(:productName)", nativeQuery = true)
-    List<GetProductCardProjection> searchGetProductCardProjections(@Param("productName") String productName);
+        @Query(value = "SELECT * FROM search_products_cards(:productName)", nativeQuery = true)
+        List<GetProductCardProjection> searchGetProductCardProjections(@Param("productName") String productName);
 
-    @org.springframework.data.jpa.repository.Query("""
-                SELECT p.id AS id, p.name AS name, p.price AS price,
-                                           (
-                            SELECT media.absoluteUrl FROM ProductImage img
-                            LEFT JOIN img.media media
-                            WHERE img.product = p AND img.main = true
-                            ORDER BY img.id ASC
-                       )
-                       AS mainImageUrl,
-                    p.preparationDays AS preparationDays
-                FROM Product p
-                WHERE p.name = :name
-            """)
-    GetProductCardProjection findProjectedByName(String name);
+        @org.springframework.data.jpa.repository.Query("""
+                            SELECT p.id AS id, p.name AS name, p.price AS price,
+                                                       (
+                                        SELECT media.absoluteUrl FROM ProductImage img
+                                        LEFT JOIN img.media media
+                                        WHERE img.product = p AND img.main = true
+                                        ORDER BY img.id ASC
+                                   )
+                                   AS mainImageUrl,
+                                p.preparationDays AS preparationDays
+                            FROM Product p
+                            WHERE p.name = :name
+                        """)
+        GetProductCardProjection findProjectedByName(String name);
 
-    // Ownership checks and scoped fetches
-    java.util.Optional<? extends Product> findByIdAndCompanyId(Long id, Long companyId);
+        // Ownership checks and scoped fetches
+        java.util.Optional<? extends Product> findByIdAndCompanyId(Long id, Long companyId);
 
+        @Query("""
+                        SELECT r.id AS id, r.rating AS rating, r.shortComment AS shortComment, r.createdAt AS createdAt,
+                            r.product.id AS productId, r.customer.id AS customerId, r.customer.name AS customerName
+                        FROM Review r
+                        WHERE r.product.id = :productId
+                        """)
+        org.springframework.data.domain.Page<GetReviewsProjection> findReviewsByProductId(
+                        @Param("productId") Long productId,
+                        org.springframework.data.domain.Pageable pageable);
 
-    @Query("""
-            SELECT r.id AS id, r.rating AS rating, r.shortComment AS shortComment, r.createdAt AS createdAt,
-                r.product.id AS productId, r.customer.id AS customerId, r.customer.name AS customerName
-            FROM Review r
-            WHERE r.product.id = :productId
-            """)
-    org.springframework.data.domain.Page<GetReviewsProjection> findReviewsByProductId(
-            @Param("productId") Long productId,
-            org.springframework.data.domain.Pageable pageable);
+        // Find product by ID and active status
+        java.util.Optional<? extends Product> findByIdAndIsActive(Long productId, Boolean isActive);
 
-  // Find product by ID and active status
-  java.util.Optional<? extends Product> findByIdAndIsActive(Long productId, Boolean isActive);
-  
-  // Convenience method for finding active products only
-  default java.util.Optional<? extends Product> findByIdAndActive(Long productId) {
-      return findByIdAndIsActive(productId, true);
-  }
-  
-  // ##############################
-  // ######### Public APIs ########
-  // ##############################
-  
-  /**
-   * Get all active products with pagination
-   */
-  @Query("""
-            SELECT p.id AS id, p.name AS name, p.price AS price,
-                                             (
-                            SELECT media.absoluteUrl FROM ProductImage img
-                            LEFT JOIN img.media media
-                            WHERE img.product = p AND img.main = true
-                            ORDER BY img.id ASC
-                       )
-                       AS mainImageUrl,
-                       p.preparationDays AS preparationDays,
-                       p.averageRating AS averageRating
-                FROM Product p
-                WHERE p.isActive = true
-            """)
-  org.springframework.data.domain.Page<GetProductCardProjection> findAllActiveProducts(
-      org.springframework.data.domain.Pageable pageable);
-  
-  /**
-   * Find active products by category
-   */
-  @Query("""
-            SELECT p.id AS id, p.name AS name, p.price AS price,
-                                             (
-                            SELECT media.absoluteUrl FROM ProductImage img
-                            LEFT JOIN img.media media
-                            WHERE img.product = p AND img.main = true
-                            ORDER BY img.id ASC
-                       )
-                       AS mainImageUrl,
-                       p.preparationDays AS preparationDays,
-                       p.averageRating AS averageRating
-                FROM Product p
-                JOIN p.categories c
-                WHERE p.isActive = true AND c.id = :categoryId
-            """)
-  List<GetProductCardProjection> findActiveByCategoryId(@Param("categoryId") Long categoryId);
+        // Convenience method for finding active products only
+        default java.util.Optional<? extends Product> findByIdAndActive(Long productId) {
+                return findByIdAndIsActive(productId, true);
+        }
 
-  // ##############################
-  // ### Company Storefront APIs ##
-  // ##############################
-  
-  /**
-   * Get paginated active products for company storefront
-   */
-  @Query("""
-            SELECT p.id AS id, p.name AS name, p.price AS price,
-                   (
-                       SELECT media.absoluteUrl FROM ProductImage img
-                       LEFT JOIN img.media media
-                       WHERE img.product = p AND img.main = true
-                       ORDER BY img.id ASC
-                   ) AS mainImageUrl,
-                   p.preparationDays AS preparationDays,
-                   p.averageRating AS averageRating
-            FROM Product p
-            WHERE p.company.id = :companyId AND p.isActive = true
-            """)
-  org.springframework.data.domain.Page<GetProductCardProjection> findActiveProductsByCompanyId(
-      @Param("companyId") Long companyId, 
-      org.springframework.data.domain.Pageable pageable);
+        // ##############################
+        // ######### Public APIs ########
+        // ##############################
 
-  /**
-   * Get company product statistics
-   */
-  @Query("""
-            SELECT COUNT(p) AS totalProducts,
-                   SUM(CASE WHEN p.isActive = true THEN 1 ELSE 0 END) AS activeProducts,
-                   AVG(p.averageRating) AS avgRating
-            FROM Product p
-            WHERE p.company.id = :companyId
-            """)
-  CompanyProductStatsProjection getCompanyProductStats(@Param("companyId") Long companyId);
+        /**
+         * Get all active products with pagination
+         */
+        @Query("""
+                        SELECT p.id AS id, p.name AS name, p.price AS price,
+                                                         (
+                                        SELECT media.absoluteUrl FROM ProductImage img
+                                        LEFT JOIN img.media media
+                                        WHERE img.product = p AND img.main = true
+                                        ORDER BY img.id ASC
+                                   )
+                                   AS mainImageUrl,
+                                   p.preparationDays AS preparationDays,
+                                   p.avgRating.averageRating AS averageRating
+                            FROM Product p
+                            WHERE p.isActive = true
+                        """)
+        org.springframework.data.domain.Page<GetProductCardProjection> findAllActiveProducts(
+                        org.springframework.data.domain.Pageable pageable);
 
-  /**
-   * Get distinct categories for company products
-   */
-  @Query("""
-            SELECT DISTINCT c.name
-            FROM Product p
-            JOIN p.categories c
-            WHERE p.company.id = :companyId AND p.isActive = true
-            ORDER BY c.name
-            """)
-  List<String> findCategoriesByCompanyId(@Param("companyId") Long companyId);
+        /**
+         * Find active products by category
+         */
+        @Query("""
+                        SELECT p.id AS id, p.name AS name, p.price AS price,
+                                                         (
+                                        SELECT media.absoluteUrl FROM ProductImage img
+                                        LEFT JOIN img.media media
+                                        WHERE img.product = p AND img.main = true
+                                        ORDER BY img.id ASC
+                                   )
+                                   AS mainImageUrl,
+                                   p.preparationDays AS preparationDays,
+                                   p.avgRating.averageRating AS averageRating
+                            FROM Product p
+                            JOIN p.categories c
+                            WHERE p.isActive = true AND c.id = :categoryId
+                        """)
+        Page<GetProductCardProjection> findActiveByCategoryId(@Param("categoryId") Long categoryId, Pageable pageable);
+
+        // ##############################
+        // ### Company Storefront APIs ##
+        // ##############################
+
+        /**
+         * Get paginated active products for company storefront
+         */
+        @Query("""
+                        SELECT p.id AS id, p.name AS name, p.price AS price,
+                               (
+                                   SELECT media.absoluteUrl FROM ProductImage img
+                                   LEFT JOIN img.media media
+                                   WHERE img.product = p AND img.main = true
+                                   ORDER BY img.id ASC
+                               ) AS mainImageUrl,
+                               p.preparationDays AS preparationDays,
+                                   p.avgRating.averageRating AS averageRating
+                        FROM Product p
+                        WHERE p.company.id = :companyId AND p.isActive = true
+                        """)
+        org.springframework.data.domain.Page<GetProductCardProjection> findActiveProductsByCompanyId(
+                        @Param("companyId") Long companyId,
+                        org.springframework.data.domain.Pageable pageable);
+
+        /**
+         * Get company product statistics
+         */
+        @Query("""
+                        SELECT COUNT(p) AS totalProducts,
+                               SUM(CASE WHEN p.isActive = true THEN 1 ELSE 0 END) AS activeProducts,
+                               AVG(p.averageRating) AS avgRating
+                        FROM Product p
+                        WHERE p.company.id = :companyId
+                        """)
+        CompanyProductStatsProjection getCompanyProductStats(@Param("companyId") Long companyId);
+
+        /**
+         * Get distinct categories for company products
+         */
+        @Query("""
+                        SELECT DISTINCT c.name
+                        FROM Product p
+                        JOIN p.categories c
+                        WHERE p.company.id = :companyId AND p.isActive = true
+                        ORDER BY c.name
+                        """)
+        List<String> findCategoriesByCompanyId(@Param("companyId") Long companyId);
+
+        @Query("""
+                                           SELECT p.id AS id, p.name AS name, p.price AS price,
+                                                                 (
+                                                SELECT media.absoluteUrl FROM ProductImage img
+                                                LEFT JOIN img.media media
+                                                WHERE img.product = p AND img.main = true
+                                                ORDER BY img.id ASC
+                                           )
+                                           AS mainImageUrl,
+                                           p.preparationDays AS preparationDays,
+                                    p.avgRating.averageRating AS averageRating
+                                    FROM Product p
+                                    WHERE p.id IN :ids  AND p.company.id = :companyId AND p.isActive = true
+
+                        """)
+        List<GetProductCardProjection> findCardsForCompanyByIdsOrdered(@Param("companyId") Long companyId,
+                        @Param("ids") List<Long> ids);
+
+        @Query("SELECT p.id FROM Product p WHERE p.id IN :productIds AND p.company.id = :companyId AND p.isActive=true")
+        List<Long> findAllByIdAndCompanyId(@Param("productIds") List<Long> productIds,
+                        @Param("companyId") Long companyId);
 
 }
