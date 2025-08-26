@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hand.demo.model.dto.AddToCartRequest;
+import com.hand.demo.model.dto.CartViewDTO;
 import com.hand.demo.model.dto.CreateShipmentRequest;
+import com.hand.demo.model.dto.PayDepositRequest;
 import com.hand.demo.model.dto.UpdateCartItemRequest;
 import com.hand.demo.model.entity.Cart;
 import com.hand.demo.model.entity.Order;
@@ -40,6 +42,16 @@ public class MultiCartOrderController {
         return cartService.listOpenCarts(customerId);
     }
 
+    @GetMapping("/carts/view")
+    public List<CartViewDTO> listCartsAsDTO(@RequestParam Long customerId) {
+        return cartService.listOpenCartsAsDTO(customerId);
+    }
+
+    @GetMapping("/carts/{cartId}/view")
+    public CartViewDTO getCartAsDTO(@PathVariable Long cartId) {
+        return cartService.getCartAsDTO(cartId);
+    }
+
     @PostMapping("/carts/items")
     public Cart addItem(@RequestBody @Valid AddToCartRequest req) {
         return cartService.addItem(req); // الشركة تُستنتج من المنتج
@@ -60,12 +72,18 @@ public class MultiCartOrderController {
     public Order checkout(@PathVariable Long cartId) {
         return orderService.checkout(cartId);
     }
-
-    /** تأكيد التاجر (مع خيار السماح بالباك أوردر) */
+/* 
+    /** تأكيد التاجر (مع خيار السماح بالباك أوردر) 
     @PostMapping("/orders/{orderNumber}/merchant/confirm")
     public Order confirm(@PathVariable String orderNumber,
                          @RequestParam(defaultValue = "true") boolean allowBackorder) {
         return orderService.merchantConfirm(orderNumber, allowBackorder);
+    }
+*/
+    /** دفع العربون للطلب */
+    @PostMapping("/orders/pay-deposit")
+    public Order payDeposit(@RequestBody @Valid PayDepositRequest request) {
+        return orderService.payDeposit(request);
     }
 
     // === Shipments ===

@@ -12,9 +12,9 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name="pre_order_products")
+@Table(name = "pre_order_products")
 @DiscriminatorValue("PRE")
-@PrimaryKeyJoinColumn(name = "id")  // نفس PK تبع products
+@PrimaryKeyJoinColumn(name = "id") // نفس PK تبع products
 public class PreOrderProduct extends Product {
 
     @Column(name = "prepaid_price", nullable = false, precision = 10, scale = 2)
@@ -23,12 +23,13 @@ public class PreOrderProduct extends Product {
     @Column(name = "preparation_days", nullable = false)
     private Float preparationDays;
 
-
     // منطقي: العربون ≤ السعر الكلّي
-    @AssertTrue(message = "prePaidPrice must be <= full price")
+    @AssertTrue(message = "Prepaid price must be >= 0 and <= full price")
     public boolean isDepositLEPrice() {
         return getPrice() != null
-            && prePaidPrice != null
-            && prePaidPrice.compareTo(getPrice()) <= 0;
+                && prePaidPrice != null
+                && prePaidPrice.compareTo(BigDecimal.ZERO) >= 0
+                && prePaidPrice.compareTo(getPrice()) <= 0;
     }
+
 }

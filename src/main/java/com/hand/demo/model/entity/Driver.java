@@ -18,9 +18,7 @@ import lombok.Data;
 @Table(name = "drivers")
 public class Driver extends AppUser {
 
-    @OneToMany(mappedBy = "driver")
-    @JsonBackReference
-
+    @OneToMany
     private List<Order> orders = new ArrayList<>();
 
 }

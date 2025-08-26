@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.hand.demo.model.entity.Order;
@@ -13,4 +14,9 @@ import com.hand.demo.model.enums.OrderStatus;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findByOrderNumber(String orderNumber);
     List<Order> findByCompanyIdAndStatus(Long companyId, OrderStatus status);
+    List<Order> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
+    List<Order> findByCompanyIdOrderByCreatedAtDesc(Long companyId);
+    List<Order> findByCustomerIdAndStatusOrderByCreatedAtDesc(Long customerId, OrderStatus status);
+    @Query("SELECT o FROM Order o WHERE o.orderNumber = :orderNumber AND o.company.id = :companyId")
+    Optional<Order> findByOrderNumberAndCompanyId(String orderNumber, Long companyId);
 }

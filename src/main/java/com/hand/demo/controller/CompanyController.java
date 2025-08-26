@@ -34,9 +34,14 @@ import com.hand.demo.model.Dtos.product_dtos.InStockProductForCompanyV1;
 import com.hand.demo.model.Dtos.product_dtos.PreOrderProductForCompanyV1;
 import com.hand.demo.model.Dtos.product_dtos.UpdateInStockProductDto;
 import com.hand.demo.model.Dtos.product_dtos.UpdatePreOrderProductDto;
+import com.hand.demo.model.dto.CreateShipmentRequest;
+import com.hand.demo.model.entity.Order;
+import com.hand.demo.model.entity.Shipment;
 import com.hand.demo.model.entity.page.PageStatus;
+import com.hand.demo.model.enums.OrderStatus;
 import com.hand.demo.repository.GetReviewsProjection;
 import com.hand.demo.service.CompanyService;
+import com.hand.demo.service.OrderService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +56,7 @@ import lombok.RequiredArgsConstructor;
 public class CompanyController {
 
     private final CompanyService companyService;
+    private final OrderService orderService;
 
     @PostMapping("/update")
     public ResponseEntity<?> companyUpdate(@RequestBody UpdateAppUserDto company) throws CredentialException {
@@ -203,6 +209,52 @@ public class CompanyController {
             throws CredentialException {
 
         return ResponseEntity.ok(status);
+    }
+    
+    // ===== Company Order Management =====
+    
+    @PostMapping("/{companyId}/orders/{orderNumber}/confirm")
+    public ResponseEntity<Order> confirmOrder(
+            @PathVariable Long companyId,
+            @PathVariable String orderNumber,
+            @RequestParam(defaultValue = "false") boolean allowBackorder) {
+        
+        Order order = orderService.companyConfirmOrder(companyId, orderNumber, allowBackorder);
+        return ResponseEntity.ok(order);
+    }
+    
+    @PostMapping("/{companyId}/orders/shipment")
+    public ResponseEntity<Shipment> createShipment(
+            @PathVariable Long companyId,
+            @RequestBody @Valid CreateShipmentRequest request) {
+        
+        Shipment shipment = orderService.companyCreateShipment(companyId, request);
+        return ResponseEntity.ok(shipment);
+    }
+    
+    @GetMapping("/{companyId}/orders")
+    public ResponseEntity<List<Order>> getCompanyOrders(@PathVariable Long companyId) {
+        List<Order> orders = orderService.getCompanyOrders(companyId);
+        return ResponseEntity.ok(orders);
+    }
+    
+    @GetMapping("/{companyId}/orders/{orderNumber}")
+    public ResponseEntity<Order> getCompanyOrder(
+            @PathVariable Long companyId,
+            @PathVariable String orderNumber) {
+        
+        Order order = orderService.getCompanyOrder(companyId, orderNumber);
+        return ResponseEntity.ok(order);
+    }
+    
+    @PutMapping("/{companyId}/orders/{orderNumber}/status")
+    public ResponseEntity<Order> updateOrderStatus(
+            @PathVariable Long companyId,
+            @PathVariable String orderNumber,
+            @RequestParam OrderStatus status) {
+        
+        Order order = orderService.updateOrderStatus(companyId, orderNumber, status);
+        return ResponseEntity.ok(order);
     }
 
 }

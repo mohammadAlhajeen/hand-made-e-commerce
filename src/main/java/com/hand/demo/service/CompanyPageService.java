@@ -34,7 +34,6 @@ import com.hand.demo.model.entity.page.content.HeroContent;
 import com.hand.demo.model.entity.page.content.PromoContent;
 import com.hand.demo.model.entity.page.content.SectionContent;
 import com.hand.demo.repository.CompanyPageRepository;
-import com.hand.demo.repository.CompanyRepository;
 import com.hand.demo.repository.ProductRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -45,7 +44,6 @@ import lombok.RequiredArgsConstructor;
 public class CompanyPageService {
 
     private final CompanyPageRepository pageRepo;
-    private final CompanyRepository companyRepo;
     private final ProductRepository productRepo;
     private final MediaService mediaService;
 

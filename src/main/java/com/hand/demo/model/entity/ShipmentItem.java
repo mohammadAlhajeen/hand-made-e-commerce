@@ -12,17 +12,23 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter @Setter
+@Getter
+@Setter
 @Entity
-@Table(name="shipment_items")
+@Table(name = "shipment_items")
 public class ShipmentItem {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne(fetch=FetchType.LAZY, optional=false) @JoinColumn(name="shipment_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "shipment_id")
     private Shipment shipment;
 
-    @ManyToOne(fetch=FetchType.LAZY, optional=false) @JoinColumn(name="order_item_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_item_id")
     private OrderItem orderItem;
 
-    @Column(nullable=false) private Integer qty = 0;
+    @Column(nullable = false)
+    private Integer qty = 0;
 }

@@ -24,22 +24,37 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter @Setter
+@Getter
+@Setter
 @Entity
-@Table(name="shipments")
+@Table(name = "shipments")
 public class Shipment {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne(fetch=FetchType.LAZY, optional=false) @JoinColumn(name="order_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_id")
     private Order order;
 
-    @Enumerated(EnumType.STRING) @Column(nullable=false, length=16)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
     private ShipmentStatus status = ShipmentStatus.CREATED;
 
-    private LocalDateTime createdAt; private LocalDateTime updatedAt;
-    @PrePersist void p(){createdAt=LocalDateTime.now(); updatedAt=createdAt;}
-    @PreUpdate  void u(){updatedAt=LocalDateTime.now();}
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy="shipment", cascade=CascadeType.ALL, orphanRemoval=true)
+    @PrePersist
+    void p() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    void u() {
+        updatedAt = LocalDateTime.now();
+    }
+
+    @OneToMany(mappedBy = "shipment", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ShipmentItem> items = new ArrayList<>();
 }
